@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { SafeAreaView, Text, View } from 'react-native';
+import { Alert, SafeAreaView, Text, View } from 'react-native';
 import { Button } from '../../components/ui/Button';
 import { HeaderBar } from '../../components/ui/HeaderBar';
 import { Input } from '../../components/ui/Input';
+import { AuthService } from '../../lib/authService';
 import {
   RegisterFormErrors,
   validateCompanyName,
@@ -70,18 +71,35 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     const step2Errors = validateRegisterStep2(username, email, password);
     setErrors(step2Errors);
     
     if (!step2Errors.username && !step2Errors.email && !step2Errors.password) {
       setLoading(true);
-      // TODO: Add registration logic here
-      setTimeout(() => {
+      
+      try {
+        const { user, error } = await AuthService.registerWithEmail(
+          email, 
+          password, 
+          username, 
+          companyName
+        );
+        
+        if (error) {
+          Alert.alert('Registration Failed', error.message || 'An error occurred during registration');
+          setLoading(false);
+          return;
+        }
+
+        if (user) {
+          router.replace("/(tabs)");
+        }
+      } catch (error) {
+        Alert.alert('Registration Failed', 'An unexpected error occurred');
+      } finally {
         setLoading(false);
-        router.replace("/(tabs)")
-        // Navigate to main app after successful registration
-      }, 1000);
+      }
     }
   };
 
