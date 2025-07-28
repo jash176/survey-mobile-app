@@ -4,7 +4,7 @@ import { Alert, SafeAreaView, Text, View } from 'react-native';
 import { Button } from '../../components/ui/Button';
 import { HeaderBar } from '../../components/ui/HeaderBar';
 import { Input } from '../../components/ui/Input';
-import { AuthService } from '../../lib/authService';
+import { useAuth } from '../../lib/authContext';
 import {
   RegisterFormErrors,
   validateCompanyName,
@@ -25,6 +25,7 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<RegisterFormErrors>({});
+  const { signUp } = useAuth();
 
   const handleCompanyNameChange = (text: string) => {
     setCompanyName(text);
@@ -79,7 +80,7 @@ export default function RegisterScreen() {
       setLoading(true);
       
       try {
-        const { user, error } = await AuthService.registerWithEmail(
+        const { user, error } = await signUp(
           email, 
           password, 
           username, 
@@ -93,7 +94,7 @@ export default function RegisterScreen() {
         }
 
         if (user) {
-          router.replace("/(tabs)");
+          router.replace("/(auth)/login");
         }
       } catch (error) {
         Alert.alert('Registration Failed', 'An unexpected error occurred');

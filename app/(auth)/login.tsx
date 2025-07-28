@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Alert, SafeAreaView, Text, View } from 'react-native';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { AuthService } from '../../lib/authService';
+import { useAuth } from '../../lib/authContext';
 import {
   LoginFormErrors,
   validateEmail,
@@ -16,6 +16,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<LoginFormErrors>({});
+  const { signIn } = useAuth();
 
   const validateForm = (): boolean => {
     const formErrors = validateLoginForm(email, password);
@@ -45,7 +46,7 @@ export default function LoginScreen() {
     setLoading(true);
     
     try {
-      const { user, error } = await AuthService.loginWithEmail(email, password);
+      const { user, error } = await signIn(email, password);
       
       if (error) {
         Alert.alert('Login Failed', error.message || 'An error occurred during login');
