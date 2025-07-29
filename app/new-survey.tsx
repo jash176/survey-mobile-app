@@ -10,7 +10,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 const NewSurvey = () => {
   const renderSurveyComponent = (page: any) => {
-    console.log("Page : ", page)
     switch (page.type) {
       case 'link':
         return (
