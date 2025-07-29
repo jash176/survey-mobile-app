@@ -8,7 +8,7 @@ const SplashScreen = () => {
   const handleNavigation = () => {
     if (loading) return;
     if(user) {
-      router.replace("/(tabs)")
+      router.replace("/dashboard")
       return;
     }
     router.push("/(auth)/login")

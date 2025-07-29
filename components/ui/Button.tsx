@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, PressableProps, Text, ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, PressableProps, Text, View, ViewStyle } from 'react-native';
 import { theme } from '../../constants/theme';
 
 interface ButtonProps extends Omit<PressableProps, 'style'> {
@@ -8,19 +8,21 @@ interface ButtonProps extends Omit<PressableProps, 'style'> {
   loading?: boolean;
   disabled?: boolean;
   style?: ViewStyle;
+  rightIcon?: React.ReactNode;
 }
 
-export const Button: React.FC<ButtonProps> = ({ 
-  title, 
-  variant = 'primary', 
+export const Button: React.FC<ButtonProps> = ({
+  title,
+  variant = 'primary',
   loading = false,
   disabled = false,
   style,
-  ...props 
+  rightIcon,
+  ...props
 }) => {
   const getButtonStyle = () => {
     const baseStyle = "rounded-lg px-6 py-3 items-center justify-center";
-    
+
     switch (variant) {
       case 'primary':
         return `${baseStyle} bg-primary`;
@@ -34,8 +36,8 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const getTextStyle = () => {
-    const baseStyle = "text-base font-semibold";
-    
+    const baseStyle = "text-base font-semibold flex-row items-center";
+
     switch (variant) {
       case 'primary':
         return `${baseStyle} text-white`;
@@ -63,9 +65,18 @@ export const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <ActivityIndicator color={variant === 'text' ? theme.colors.textSecondary : '#ffffff'} />
       ) : (
-        <Text className={getTextStyle()}>
-          {title}
-        </Text>
+        <>
+          <Text className={getTextStyle()}>
+            {title}
+            {rightIcon ? (
+              <React.Fragment>
+                {/* Add a small space between text and icon */}
+                <View style={{ width: 8 }} />
+                {rightIcon}
+              </React.Fragment>
+            ) : null}
+          </Text>
+        </>
       )}
     </Pressable>
   );
