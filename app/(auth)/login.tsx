@@ -55,7 +55,7 @@ export default function LoginScreen() {
       }
 
       if (user) {
-        router.replace("/(tabs)");
+        router.replace("/dashboard");
       }
     } catch (error) {
       Alert.alert('Login Failed', 'An unexpected error occurred');
