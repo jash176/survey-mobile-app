@@ -21,7 +21,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const getButtonStyle = () => {
-    const baseStyle = "rounded-lg px-6 py-3 items-center justify-center";
+    const baseStyle = "rounded-lg px-6 h-11 items-center justify-center";
 
     switch (variant) {
       case 'primary':
@@ -36,7 +36,7 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const getTextStyle = () => {
-    const baseStyle = "text-base font-semibold flex-row items-center";
+    const baseStyle = "text-lg font-semibold flex-row items-center";
 
     switch (variant) {
       case 'primary':

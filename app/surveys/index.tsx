@@ -5,9 +5,9 @@ import React from 'react'
 import { FlatList, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-const Dashboard = () => {
+const SurveysIndex = () => {
   const handleNewSurveyPress = () => {
-    router.push("/new-survey")
+    router.push("/surveys/new")
   }
   return (
     <SafeAreaView className='flex-1 bg-background'>
@@ -37,4 +37,4 @@ const Dashboard = () => {
   )
 }
 
-export default Dashboard
+export default SurveysIndex

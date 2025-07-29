@@ -7,8 +7,8 @@ const SplashScreen = () => {
   const { user, loading } = useAuth();
   const handleNavigation = () => {
     if (loading) return;
-    if(user) {
-      router.replace("/dashboard")
+    if (user) {
+      router.replace("/surveys")
       return;
     }
     router.push("/(auth)/login")
