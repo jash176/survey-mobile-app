@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { SafeAreaView, Text, View } from 'react-native';
+import { Alert, SafeAreaView, Text, View } from 'react-native';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { useAuth } from '../../lib/authContext';
 import {
   LoginFormErrors,
   validateEmail,
@@ -15,6 +16,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<LoginFormErrors>({});
+  const { signIn } = useAuth();
 
   const validateForm = (): boolean => {
     const formErrors = validateLoginForm(email, password);
@@ -36,18 +38,30 @@ export default function LoginScreen() {
     }
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
-    // TODO: Add login logic here
-    setTimeout(() => {
+    
+    try {
+      const { user, error } = await signIn(email, password);
+      
+      if (error) {
+        Alert.alert('Login Failed', error.message || 'An error occurred during login');
+        setLoading(false);
+        return;
+      }
+
+      if (user) {
+        router.replace("/(tabs)");
+      }
+    } catch (error) {
+      Alert.alert('Login Failed', 'An unexpected error occurred');
+    } finally {
       setLoading(false);
-      router.replace("/(tabs)")
-      // Navigate to main app after successful login
-    }, 1000);
+    }
   };
 
   const handleRegister = () => {
