@@ -1,3 +1,5 @@
+import { RatingType } from "@/components/survey/Rating";
+
 export const SURVEY_TEMPLATES = [
   {
     id: 'text-feedback',
@@ -9,6 +11,12 @@ export const SURVEY_TEMPLATES = [
         title: 'What can we do better?',
         description: "Is there anything we can do to make tempo better for you?",
         placeholder: 'Type your answer here',
+        low_label: "",
+        high_label: "",
+        link_text: "",
+        redirect_url: "",
+        options: [""],
+        allow_multiple: false,
       },
     ],
     color: "border-cyan-400"
@@ -20,10 +28,16 @@ export const SURVEY_TEMPLATES = [
     pages: [
       {
         type: 'rating',
-        rating_type: "NUMBER",
         title: 'How satisfied are you?',
         description: 'Rate from 1 to 5 stars',
-        rating_scale: 5,
+        rating_type: RatingType.NUMBER,
+        rating_scale: 10,
+        low_label: "Poor",
+        high_label: "Excellent",
+        link_text: "",
+        redirect_url: "",
+        options: [""],
+        allow_multiple: false,
       },
     ],
     color: "border-blue-400"
@@ -42,6 +56,12 @@ export const SURVEY_TEMPLATES = [
           'Dashboard',
           'Notifications',
         ],
+        rating_type: RatingType.NUMBER,
+        rating_scale: 10,
+        low_label: "Poor",
+        high_label: "Excellent",
+        link_text: "",
+        redirect_url: "",
       },
     ],
     color: "border-purple-600"
@@ -54,7 +74,9 @@ export const SURVEY_TEMPLATES = [
       {
         type: 'link',
         title: 'Thanks for your interest!',
-        redirect_url: 'https://youtube.com',
+        redirect_url: 'https://tempo.new',
+        link_text: "",
+        options: [""],
       },
     ],
     color: "border-orange-500"
@@ -66,9 +88,12 @@ export const SURVEY_TEMPLATES = [
     pages: [
       {
         type: 'rating',
-        rating_type: "EMOJI",
         title: 'How easy was it to user our product?',
-        rating_scale: 5,
+        rating_type: RatingType.EMOJI,
+        low_label: "Poor",
+        high_label: "Excellent",
+        link_text: "",
+        redirect_url: "",
       },
     ],
     color: "border-orange-400"

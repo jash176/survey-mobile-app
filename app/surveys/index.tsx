@@ -97,9 +97,7 @@ const SurveysIndex = () => {
           data={surveys}
           renderItem={renderSurveyItem}
           contentContainerStyle={{ flexGrow: 1 }}
-          keyExtractor={(item, index) =>
-            item.id ? item.id.toString() : `index-${index}`
-          }
+          keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={() => {
             return (
               <View className="flex-1 justify-center items-center">

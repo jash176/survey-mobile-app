@@ -7,7 +7,11 @@ import IconButton from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
 import { theme } from "@/constants/theme";
 import { useAuth } from "@/lib/authContext";
-import { ISurvey, SurveyService } from "@/lib/surveyService";
+import {
+  SurveyInput,
+  SurveyPageInput,
+  SurveyService,
+} from "@/lib/surveyService";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import Octicons from "@expo/vector-icons/Octicons";
@@ -16,26 +20,15 @@ import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, SafeAreaView, ScrollView, Text, View } from "react-native";
 
+// Local interface for managing survey state with additional UI properties
 export interface SurveyLocal {
   title: string;
   description: string;
-  pages: Page[];
+  pages: PageLocal[];
 }
 
-export interface Page {
-  id: string;
-  type: string;
-  title: string;
-  description: string;
-  placeholder: string;
-  rating_type: RatingType;
-  rating_scale: number;
-  low_label: string;
-  high_label: string;
-  link_text: string;
-  link_url: string;
-  answer: string;
-  options: string[];
+export interface PageLocal extends SurveyPageInput {
+  id: string; // For local state management
 }
 
 const Survey = () => {
@@ -45,12 +38,12 @@ const Survey = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   // Default survey state
-  const defaultSurvey = {
+  const defaultSurvey: SurveyLocal = {
     title: "Open question",
     description: "Gather open-ended thoughts your users have about a topic.",
     pages: [
       {
-        id: "1",
+        id: "1", // Local ID for state management
         type: "text",
         title: "What could we do better",
         description:
@@ -61,44 +54,43 @@ const Survey = () => {
         low_label: "Poor",
         high_label: "Excellent",
         link_text: "Link Text",
-        link_url: "https://tempo.new",
-        answer: "",
+        redirect_url: "https://tempo.new",
         options: ["Excellent"],
         allow_multiple: false,
       },
     ],
   };
 
-  const [survey, setSurvey] = useState(defaultSurvey);
+  const [survey, setSurvey] = useState<SurveyLocal>(defaultSurvey);
 
   // Initialize survey with template data if provided
   useEffect(() => {
     if (params.template) {
       try {
         const templateData = JSON.parse(params.template as string);
-        const templatePages = templateData.pages.map((page: any) => ({
-          type: page.type,
-          title: page.title || "",
-          description: page.description || "",
-          placeholder: page.placeholder || "",
-          rating_type: page.rating_type || "NPS",
-          rating_scale: page.rating_scale || 10,
-          low_label: page.low_label || "Poor",
-          high_label: page.high_label || "Excellent",
-          link_text: page.link_text || "Link Text",
-          link_url: page.redirect_url || "https://example.com",
-          answer: "",
-          options: page.options || ["Option 1"],
-          allow_multiple: page.allow_multiple || false,
-        }));
+        const templatePages = templateData.pages.map(
+          (page: any, index: number) => ({
+            id: `template-${index}`, // Generate local ID
+            type: page.type,
+            title: page.title || "",
+            description: page.description || "",
+            placeholder: page.placeholder || "",
+            rating_type: page.rating_type || "NPS",
+            rating_scale: page.rating_scale || 10,
+            low_label: page.low_label || "",
+            high_label: page.high_label || "",
+            link_text: page.link_text || "",
+            redirect_url: page.redirect_url || "",
+            options: page.options || [],
+            allow_multiple: page.allow_multiple || false,
+          })
+        );
 
-        const newSurvey = {
+        const newSurvey: SurveyLocal = {
           title: templateData.title || "New Survey",
           description: templateData.description || "Survey description",
           pages: templatePages,
         };
-
-        console.log("Setting survey with template data:", newSurvey);
         setSurvey(newSurvey);
       } catch (error) {
         console.error("Error parsing template data:", error);
@@ -115,25 +107,15 @@ const Survey = () => {
           const { survey: fetchedSurvey, error } =
             await SurveyService.getSurveyById(params.id as string);
           if (fetchedSurvey) {
+            const localPages: PageLocal[] = fetchedSurvey.pages.map((page) => ({
+              ...page,
+              id: page.id,
+            }));
+
             setSurvey({
               title: fetchedSurvey.title || "",
               description: fetchedSurvey.description || "",
-              pages: (fetchedSurvey.pages || []).map((page) => ({
-                id: page.id as string,
-                type: page.type || "text",
-                title: page.title || "",
-                description: page.description || "",
-                placeholder: page.placeholder || "",
-                rating_type: page.rating_type || RatingType.NPS,
-                rating_scale: page.rating_scale || 10,
-                low_label: "Poor",
-                high_label: "Excellent",
-                link_text: page.link_text || "Link Text",
-                link_url: page.redirect_url || "https://example.com",
-                answer: "",
-                options: page.options || ["Option 1"],
-                allow_multiple: page.allow_multiple || false,
-              })),
+              pages: localPages,
             });
           }
           if (error) {
@@ -181,7 +163,11 @@ const Survey = () => {
     },
   ];
 
-  const handleFieldChange = (field: keyof Page, value: any, pageId: string) => {
+  const handleFieldChange = (
+    field: keyof PageLocal,
+    value: any,
+    pageId: string
+  ) => {
     setSurvey((prev) => ({
       ...prev,
       pages: prev.pages.map((page) =>
@@ -199,7 +185,7 @@ const Survey = () => {
     setIsSaving(true);
     try {
       // Transform the survey data to match the database schema
-      const surveyData: ISurvey = {
+      const surveyData: SurveyInput = {
         title: survey.title,
         description: survey.description,
         pages: survey.pages.map((page) => ({
@@ -207,8 +193,10 @@ const Survey = () => {
           description: page.description,
           type: page.type as "text" | "link" | "rating" | "mcq",
           placeholder: page.placeholder || undefined,
-          redirect_url: page.link_url || undefined,
+          redirect_url: page.redirect_url || undefined,
           link_text: page.link_text || undefined,
+          low_label: page.low_label || undefined,
+          high_label: page.high_label || undefined,
           rating_type: page.rating_type || undefined,
           rating_scale: page.rating_scale || undefined,
           options: page.options || undefined,
@@ -255,20 +243,23 @@ const Survey = () => {
     }));
   };
 
-  const renderTextContent = (item: Page) => {
-    const text = item.answer;
+  const renderTextContent = (item: PageLocal) => {
+    const text = item.placeholder;
     return (
       <Input
         value={text}
-        onChangeText={(value) => handleFieldChange("answer", value, item.id)}
+        onChangeText={(value) =>
+          handleFieldChange("placeholder", value, item.id)
+        }
         label="Placeholder"
         placeholder="Placeholder"
       />
     );
   };
-  const renderLinkContent = (item: Page) => {
+
+  const renderLinkContent = (item: PageLocal) => {
     const linkText = item.link_text;
-    const linkUrl = item.link_url;
+    const linkUrl = item.redirect_url;
     return (
       <>
         <Input
@@ -283,9 +274,9 @@ const Survey = () => {
           label="Link Redirect Url"
           value={linkUrl}
           placeholder="Link Redirect Url"
-          onChangeText={(value) =>
-            handleFieldChange("link_url", value, item.id)
-          }
+          onChangeText={(value) => {
+            handleFieldChange("redirect_url", value, item.id);
+          }}
         />
         <View>
           <Text className="text-white font-medium mb-2">Open link</Text>
@@ -317,10 +308,11 @@ const Survey = () => {
       </>
     );
   };
-  const renderRatingContent = (item: Page) => {
+
+  const renderRatingContent = (item: PageLocal) => {
     const lowLabel = item.low_label;
     const highLabel = item.high_label;
-    const scale = item.rating_scale;
+    const scale = item.rating_scale || 10;
     return (
       <>
         <View>
@@ -421,7 +413,8 @@ const Survey = () => {
       </>
     );
   };
-  const renderMultiChoiceContent = (item: Page) => {
+
+  const renderMultiChoiceContent = (item: PageLocal) => {
     const options = item.options || [];
 
     const handleAddOption = () => {
@@ -479,16 +472,17 @@ const Survey = () => {
       </>
     );
   };
+
   const renderSurveyPreview = () => {
     const item = survey.pages[0];
     const title = item.title;
     const description = item.description;
-    const linkText = item.link_text;
+    const linkText = item.link_text || "";
     const ratingType = item.rating_type;
     const lowLabel = item.low_label;
     const highLabel = item.high_label;
-    const options = item.options;
-    const ratingScale = item.rating_scale;
+    const options = item.options || [];
+    const ratingScale = item.rating_scale || 10;
     switch (item.type) {
       case "text":
         return (
