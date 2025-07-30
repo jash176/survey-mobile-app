@@ -13,19 +13,42 @@ import Octicons from "@expo/vector-icons/Octicons";
 import React, { useState } from "react";
 import { SafeAreaView, ScrollView, Text, View } from "react-native";
 
+export interface SurveyLocal {
+  title: string;
+  description: string;
+  pages: Page[];
+}
+
+export interface Page {
+  id: string;
+  type: "text" | "link" | "rating" | "mcq";
+  title: string;
+  description: string;
+  placeholder: string;
+  rating_type: RatingType;
+  rating_scale: number;
+  low_label: string;
+  high_label: string;
+  link_text: string;
+  link_url: string;
+  answer: string;
+  options: string[];
+}
+
 const Survey = () => {
   const [newOption, setNewOption] = useState("");
-  const [survey, setSurvey] = useState({
+  const [survey, setSurvey] = useState<SurveyLocal>({
     title: "Open question",
     description: "Gather open-ended thoughts your users have about a topic.",
     pages: [
       {
+        id: "1",
         type: "text",
         title: "What could we do better",
         description:
           "Is there anything we could do to make tempo better for you?",
         placeholder: "",
-        rating_type: "NPS",
+        rating_type: RatingType.NPS,
         rating_scale: 10,
         low_label: "Poor",
         high_label: "Excellent",
@@ -67,34 +90,29 @@ const Survey = () => {
     },
   ];
 
-  const handleFieldChange = (
-    field: keyof (typeof survey.pages)[0],
-    value: any,
-    index: number
-  ) => {
-    const pages = [...survey.pages];
-    pages[index] = { ...pages[index], [field]: value };
-
+  const handleFieldChange = (field: keyof Page, value: any, pageId: string) => {
     setSurvey((prev) => ({
       ...prev,
-      pages,
+      pages: prev.pages.map((page) =>
+        page.id === pageId ? { ...page, [field]: value } : page
+      ),
     }));
   };
 
-  const renderTextContent = (index: number) => {
-    const text = survey.pages[index].answer;
+  const renderTextContent = (item: Page) => {
+    const text = item.answer;
     return (
       <Input
         value={text}
-        onChangeText={(value) => handleFieldChange("answer", value, index)}
+        onChangeText={(value) => handleFieldChange("answer", value, item.id)}
         label="Placeholder"
         placeholder="Placeholder"
       />
     );
   };
-  const renderLinkContent = (index: number) => {
-    const linkText = survey.pages[index].link_text;
-    const linkUrl = survey.pages[index].link_url;
+  const renderLinkContent = (item: Page) => {
+    const linkText = item.link_text;
+    const linkUrl = item.link_url;
     return (
       <>
         <Input
@@ -106,7 +124,9 @@ const Survey = () => {
           label="Link Redirect Url"
           value={linkUrl}
           placeholder="Link Redirect Url"
-          onChangeText={(value) => handleFieldChange("link_url", value, index)}
+          onChangeText={(value) =>
+            handleFieldChange("link_url", value, item.id)
+          }
         />
         <View>
           <Text className="text-white font-medium mb-2">Open link</Text>
@@ -138,17 +158,17 @@ const Survey = () => {
       </>
     );
   };
-  const renderRatingContent = (index: number) => {
-    const lowLabel = survey.pages[index].low_label;
-    const highLabel = survey.pages[index].high_label;
-    const scale = survey.pages[index].rating_scale;
+  const renderRatingContent = (item: Page) => {
+    const lowLabel = item.low_label;
+    const highLabel = item.high_label;
+    const scale = item.rating_scale;
     return (
       <>
         <View>
           <Text className="text-white font-medium mb-2">Survey type</Text>
           <View className="flex-row flex-wrap items-center gap-3">
             <IconButton
-              onPress={() => handleFieldChange("rating_type", "NPS", index)}
+              onPress={() => handleFieldChange("rating_type", "NPS", item.id)}
               className="grow"
               icon={
                 <AntDesign
@@ -160,13 +180,15 @@ const Survey = () => {
               title="NPS"
               style={{
                 backgroundColor:
-                  survey.pages[index].rating_type === "NPS"
+                  item.rating_type === RatingType.NPS
                     ? "#242838"
                     : "transparent",
               }}
             />
             <IconButton
-              onPress={() => handleFieldChange("rating_type", "NUMBER", index)}
+              onPress={() =>
+                handleFieldChange("rating_type", RatingType.NUMBER, item.id)
+              }
               className="grow"
               icon={
                 <Octicons
@@ -178,13 +200,13 @@ const Survey = () => {
               title="Number"
               style={{
                 backgroundColor:
-                  survey.pages[index].rating_type === "NUMBER"
+                  item.rating_type === RatingType.NUMBER
                     ? "#242838"
                     : "transparent",
               }}
             />
             <IconButton
-              onPress={() => handleFieldChange("rating_type", "EMOJI", index)}
+              onPress={() => handleFieldChange("rating_type", "EMOJI", item.id)}
               className="grow"
               icon={
                 <Feather
@@ -196,20 +218,20 @@ const Survey = () => {
               title="Emoji"
               style={{
                 backgroundColor:
-                  survey.pages[index].rating_type === "EMOJI"
+                  item.rating_type === RatingType.EMOJI
                     ? "#242838"
                     : "transparent",
               }}
             />
           </View>
         </View>
-        {survey.pages[index].rating_type === "NUMBER" && (
+        {item.rating_type === RatingType.NUMBER && (
           <View>
             <Text className="text-white font-medium mb-2">Scale</Text>
             <CustomSlider
               value={scale}
               onValueChange={(value) =>
-                handleFieldChange("rating_scale", value, index)
+                handleFieldChange("rating_scale", value, item.id)
               }
               minimumValue={0}
               maximumValue={10}
@@ -224,33 +246,35 @@ const Survey = () => {
           label="Low Label"
           value={lowLabel}
           placeholder="Low Label"
-          onChangeText={(value) => handleFieldChange("low_label", value, index)}
+          onChangeText={(value) =>
+            handleFieldChange("low_label", value, item.id)
+          }
         />
         <Input
           label="High Label"
           value={highLabel}
           placeholder="High Label"
           onChangeText={(value) =>
-            handleFieldChange("high_label", value, index)
+            handleFieldChange("high_label", value, item.id)
           }
         />
       </>
     );
   };
-  const renderMultiChoiceContent = (index: number) => {
-    const options = survey.pages[index].options || [];
+  const renderMultiChoiceContent = (item: Page) => {
+    const options = item.options || [];
 
     const handleAddOption = () => {
       if (newOption.trim()) {
         const updatedOptions = [...options, newOption.trim()];
-        handleFieldChange("options", updatedOptions, index);
+        handleFieldChange("options", updatedOptions, item.id);
         setNewOption("");
       }
     };
 
     const handleDeleteOption = (optionIndex: number) => {
       const updatedOptions = options.filter((_, i) => i !== optionIndex);
-      handleFieldChange("options", updatedOptions, index);
+      handleFieldChange("options", updatedOptions, item.id);
     };
 
     return (
@@ -295,21 +319,22 @@ const Survey = () => {
       </>
     );
   };
-  const renderSurveyCard = (index: number) => {
-    const title = survey.pages[index].title;
-    const description = survey.pages[index].description;
-    const linkText = survey.pages[index].link_text;
-    const ratingType = survey.pages[index].rating_type;
-    const lowLabel = survey.pages[index].low_label;
-    const highLabel = survey.pages[index].high_label;
-    const options = survey.pages[index].options;
-    switch (survey.pages[index].type) {
+  const renderSurveyCard = () => {
+    const item = survey.pages[0];
+    const title = item.title;
+    const description = item.description;
+    const linkText = item.link_text;
+    const ratingType = item.rating_type;
+    const lowLabel = item.low_label;
+    const highLabel = item.high_label;
+    const options = item.options;
+    switch (item.type) {
       case "text":
         return (
           <Question
             title={title}
             description={description}
-            placeholder={survey.pages[index].placeholder}
+            placeholder={item.placeholder}
             onSubmit={() => {}}
           />
         );
@@ -399,11 +424,14 @@ const Survey = () => {
             <Text className="text-textPrimary text-lg font-bold">
               Survey pages
             </Text>
-            {survey.pages.map((surv, servIndex) => {
-              const title = survey.pages[servIndex].title;
-              const description = survey.pages[servIndex].description;
+            {survey.pages.map((surv) => {
+              const title = surv.title;
+              const description = surv.description;
               return (
-                <View className="border border-borderPrimary rounded-lg bg-[#24283833]">
+                <View
+                  key={surv.id}
+                  className="border border-borderPrimary rounded-lg bg-[#24283833]"
+                >
                   <View className="p-5 flex-row items-center justify-between border-b border-borderPrimary">
                     <Text className="text-textSecondary text-lg font-bold">
                       {title}
@@ -427,7 +455,7 @@ const Survey = () => {
                         >
                           <IconButton
                             onPress={() =>
-                              handleFieldChange("type", item.type, servIndex)
+                              handleFieldChange("type", item.type, surv.id)
                             }
                             icon={item.icon}
                             title={item.label}
@@ -447,7 +475,7 @@ const Survey = () => {
                         value={title}
                         placeholder="Title"
                         onChangeText={(value) =>
-                          handleFieldChange("title", value, servIndex)
+                          handleFieldChange("title", value, surv.id)
                         }
                       />
                       <Input
@@ -455,14 +483,13 @@ const Survey = () => {
                         value={description}
                         placeholder="Description"
                         onChangeText={(value) =>
-                          handleFieldChange("description", value, servIndex)
+                          handleFieldChange("description", value, surv.id)
                         }
                       />
-                      {surv.type === "text" && renderTextContent(servIndex)}
-                      {surv.type === "link" && renderLinkContent(servIndex)}
-                      {surv.type === "rating" && renderRatingContent(servIndex)}
-                      {surv.type === "mcq" &&
-                        renderMultiChoiceContent(servIndex)}
+                      {surv.type === "text" && renderTextContent(surv)}
+                      {surv.type === "link" && renderLinkContent(surv)}
+                      {surv.type === "rating" && renderRatingContent(surv)}
+                      {surv.type === "mcq" && renderMultiChoiceContent(surv)}
                     </View>
                   </View>
                 </View>
@@ -471,7 +498,7 @@ const Survey = () => {
           </View>
           <View className="px-4 py-7">
             <View className="p-6 shadow border border-borderPrimary rounded-lg bg-[#1d212d]">
-              {renderSurveyCard(0)}
+              {renderSurveyCard()}
             </View>
           </View>
         </ScrollView>
