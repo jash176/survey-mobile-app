@@ -1,20 +1,21 @@
-import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import React from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 
 // Rating type enum
 export enum RatingType {
-  NPS = 'NPS',
-  NUMBERS = 'NUMBERS',
-  EMOJI = 'EMOJI'
-};
+  NPS = "NPS",
+  NUMBERS = "NUMBERS",
+  EMOJI = "EMOJI",
+}
 
 interface RatingProps {
   title?: string;
   description?: string;
   lowLabel?: string;
   highLabel?: string;
-  type: keyof typeof RatingType,
+  type: keyof typeof RatingType;
   onRatingChange: (rating: number) => void;
+  ratingScale?: number;
 }
 
 const Rating = ({
@@ -24,20 +25,20 @@ const Rating = ({
   highLabel = "Very likely",
   type = RatingType.NPS,
   onRatingChange,
+  ratingScale,
 }: RatingProps) => {
-
   const handleRatingSelect = (rating: number) => {
     onRatingChange(rating);
   };
 
   const renderNumRating = (isNps?: boolean) => {
     return (
-      <View className="flex-row justify-between items-center mt-4">
-        {Array.from({ length: isNps ? 11 : 10 }, (_, i) => (
+      <View className="flex-row justify-between items-center mt-4 gap-2">
+        {Array.from({ length: isNps ? 11 : (ratingScale ?? 10) }, (_, i) => (
           <TouchableOpacity
             key={i}
             onPress={() => handleRatingSelect(i)}
-            className={`px-2 h-12 border justify-center items-center border-borderPrimary bg-[#32384d59] rounded-md`}
+            className={`grow h-12 border justify-center items-center border-borderPrimary bg-[#32384d59] rounded-md`}
           >
             <Text className={`text-base font-bold text-white`}>
               {isNps ? i : i + 1}
@@ -49,7 +50,7 @@ const Rating = ({
   };
 
   const renderEmojiRating = () => {
-    const emojis = ['😡', '😞', '😐', '😊', '😍'];
+    const emojis = ["😡", "😞", "😐", "😊", "😍"];
 
     return (
       <View className="flex-row justify-between items-center mt-4">
@@ -81,26 +82,27 @@ const Rating = ({
 
   return (
     <View>
-      <Text className="text-white text-xl font-medium mb-2">
-        {title}
-      </Text>
+      <Text className="text-white text-xl font-medium mb-2">{title}</Text>
 
       {description && (
-        <Text className="text-gray-400 text-base mb-4">
-          {description}
-        </Text>
+        <Text className="text-gray-400 text-base mb-4">{description}</Text>
       )}
 
       {/* Rating Content */}
       {renderRatingContent()}
 
-      {(lowLabel || highLabel) && <View className="flex-row justify-between mt-3">
-        {lowLabel && <Text className="text-gray-400 text-xs">{lowLabel}</Text>}
-        {highLabel && <Text className="text-gray-400 text-xs">{highLabel}</Text>}
-      </View>}
-
+      {(lowLabel || highLabel) && (
+        <View className="flex-row justify-between mt-3">
+          {lowLabel && (
+            <Text className="text-gray-400 text-xs">{lowLabel}</Text>
+          )}
+          {highLabel && (
+            <Text className="text-gray-400 text-xs">{highLabel}</Text>
+          )}
+        </View>
+      )}
     </View>
   );
 };
 
-export default Rating
+export default Rating;
