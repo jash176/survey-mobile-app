@@ -24,7 +24,7 @@ export interface SurveyLocal {
 
 export interface Page {
   id: string;
-  type: "text" | "link" | "rating" | "mcq";
+  type: string;
   title: string;
   description: string;
   placeholder: string;
@@ -119,11 +119,12 @@ const Survey = () => {
               title: fetchedSurvey.title || "",
               description: fetchedSurvey.description || "",
               pages: (fetchedSurvey.pages || []).map((page) => ({
+                id: page.id as string,
                 type: page.type || "text",
                 title: page.title || "",
                 description: page.description || "",
                 placeholder: page.placeholder || "",
-                rating_type: page.rating_type || "NPS",
+                rating_type: page.rating_type || RatingType.NPS,
                 rating_scale: page.rating_scale || 10,
                 low_label: "Poor",
                 high_label: "Excellent",
@@ -208,8 +209,7 @@ const Survey = () => {
           placeholder: page.placeholder || undefined,
           redirect_url: page.link_url || undefined,
           link_text: page.link_text || undefined,
-          rating_type:
-            (page.rating_type as "number" | "emoji" | "nps") || undefined,
+          rating_type: page.rating_type || undefined,
           rating_scale: page.rating_scale || undefined,
           options: page.options || undefined,
           allow_multiple: page.allow_multiple || false,
@@ -248,29 +248,6 @@ const Survey = () => {
     }
   };
 
-  const handleAddPage = () => {
-    const newPage = {
-      type: "text" as const,
-      title: "New Question",
-      description: "Enter your question description here",
-      placeholder: "",
-      rating_type: "NPS" as const,
-      rating_scale: 10,
-      low_label: "Poor",
-      high_label: "Excellent",
-      link_text: "Link Text",
-      link_url: "https://example.com",
-      answer: "",
-      options: ["Option 1"],
-      allow_multiple: false,
-    };
-
-    setSurvey((prev) => ({
-      ...prev,
-      pages: [...prev.pages, newPage],
-    }));
-  };
-
   const handleDeletePage = (pageIndex: number) => {
     setSurvey((prev) => ({
       ...prev,
@@ -278,8 +255,8 @@ const Survey = () => {
     }));
   };
 
-    const renderTextContent = (item: Page) => {
-        const text = item.answer;
+  const renderTextContent = (item: Page) => {
+    const text = item.answer;
     return (
       <Input
         value={text}
@@ -411,7 +388,7 @@ const Survey = () => {
               className="w-full"
               value={scale}
               onValueChange={(value) => {
-                handleFieldChange("rating_scale", value, index);
+                handleFieldChange("rating_scale", value, item.id);
               }}
               step={1}
               minimumValue={1}
@@ -508,6 +485,7 @@ const Survey = () => {
     const lowLabel = item.low_label;
     const highLabel = item.high_label;
     const options = item.options;
+    const ratingScale = item.rating_scale;
     switch (item.type) {
       case "text":
         return (

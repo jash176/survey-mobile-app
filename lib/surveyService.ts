@@ -1,3 +1,4 @@
+import { RatingType } from '@/components/survey/Rating';
 import { supabase } from './supabase';
 
 export interface SurveyPage {
@@ -9,7 +10,7 @@ export interface SurveyPage {
   placeholder?: string;
   redirect_url?: string;
   link_text?: string;
-  rating_type?: 'number' | 'emoji' | 'nps';
+  rating_type?: RatingType;
   rating_scale?: number;
   options?: string[]; // This will be used for UI but not stored in survey_pages
   allow_multiple?: boolean;
@@ -22,7 +23,7 @@ export interface SurveyOption {
 }
 
 export interface ISurvey {
-  id: string;
+  id?: string;
   title: string;
   description: string;
   user_id?: string;
