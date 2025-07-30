@@ -7,24 +7,23 @@ interface InputProps extends TextInputProps {
   error?: string;
 }
 
-export const Input: React.FC<InputProps> = ({ 
-  label, 
-  error, 
-  style, 
+export const Input: React.FC<InputProps> = ({
+  label,
+  error,
+  style,
   placeholderTextColor = theme.colors.textSecondary,
-  ...props 
+  ...props
 }) => {
   return (
-    <View className="mb-4">
+    <View className="">
       {label && (
-        <Text className="text-white text-sm font-medium mb-2">
+        <Text className="text-white font-medium mb-2">
           {label}
         </Text>
       )}
       <TextInput
-        className={`bg-gray-800 border rounded-lg px-4 py-3 text-white ${
-          error ? 'border-red-500' : 'border-gray-700'
-        }`}
+        className={`bg-gray-800 border rounded-lg px-4 py-3 text-white ${error ? 'border-red-500' : 'border-gray-700'
+          }`}
         placeholderTextColor={placeholderTextColor}
         style={[
           {

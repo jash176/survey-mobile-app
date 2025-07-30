@@ -8,9 +8,9 @@ module.exports = {
       colors: {
         background: "#0b0c11",
         textSecondary: "#b2b8cd99",
-        textPrimary: "#B2B8CD",
+        textPrimary: "#DEE1EA",
         primary: "#4652F2",
-        borderPrimary: "#dde0e90d"
+        borderPrimary: "#2b304099"
       },
     },
   },

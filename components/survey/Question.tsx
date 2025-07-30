@@ -28,8 +28,10 @@ const Question: React.FC<QuestionProps> = (props) => {
         </Text>
       )}
 
-      <Input onChangeText={onChangeAnswer} placeholder={placeholder} multiline className='min-h-48 border rounded-lg shadow p-4' />
-      <Button title='Submit answer' onPress={() => onSubmit(answer)} />
+      <View className='gap-3'>
+        <Input onChangeText={onChangeAnswer} placeholder={placeholder} multiline className='min-h-48 border rounded-lg shadow p-4' />
+        <Button title='Submit answer' onPress={() => onSubmit(answer)} />
+      </View>
 
     </View>
   )

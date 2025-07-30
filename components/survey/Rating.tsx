@@ -1,19 +1,19 @@
-import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import React from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 
 // Rating type enum
 export enum RatingType {
-  NPS = 'NPS',
-  NUMBERS = 'NUMBERS',
-  EMOJI = 'EMOJI'
-};
+  NPS = "NPS",
+  NUMBER = "NUMBER",
+  EMOJI = "EMOJI",
+}
 
 interface RatingProps {
   title?: string;
   description?: string;
   lowLabel?: string;
   highLabel?: string;
-  type: keyof typeof RatingType,
+  type: keyof typeof RatingType;
   onRatingChange: (rating: number) => void;
 }
 
@@ -25,7 +25,6 @@ const Rating = ({
   type = RatingType.NPS,
   onRatingChange,
 }: RatingProps) => {
-
   const handleRatingSelect = (rating: number) => {
     onRatingChange(rating);
   };
@@ -49,7 +48,7 @@ const Rating = ({
   };
 
   const renderEmojiRating = () => {
-    const emojis = ['😡', '😞', '😐', '😊', '😍'];
+    const emojis = ["😡", "😞", "😐", "😊", "😍"];
 
     return (
       <View className="flex-row justify-between items-center mt-4">
@@ -72,7 +71,7 @@ const Rating = ({
         return renderNumRating(true);
       case RatingType.EMOJI:
         return renderEmojiRating();
-      case RatingType.NUMBERS:
+      case RatingType.NUMBER:
         return renderNumRating();
       default:
         return renderNumRating();
@@ -81,26 +80,27 @@ const Rating = ({
 
   return (
     <View>
-      <Text className="text-white text-xl font-medium mb-2">
-        {title}
-      </Text>
+      <Text className="text-white text-xl font-medium mb-2">{title}</Text>
 
       {description && (
-        <Text className="text-gray-400 text-base mb-4">
-          {description}
-        </Text>
+        <Text className="text-gray-400 text-base mb-4">{description}</Text>
       )}
 
       {/* Rating Content */}
       {renderRatingContent()}
 
-      {(lowLabel || highLabel) && <View className="flex-row justify-between mt-3">
-        {lowLabel && <Text className="text-gray-400 text-xs">{lowLabel}</Text>}
-        {highLabel && <Text className="text-gray-400 text-xs">{highLabel}</Text>}
-      </View>}
-
+      {(lowLabel || highLabel) && (
+        <View className="flex-row justify-between mt-3">
+          {lowLabel && (
+            <Text className="text-gray-400 text-xs">{lowLabel}</Text>
+          )}
+          {highLabel && (
+            <Text className="text-gray-400 text-xs">{highLabel}</Text>
+          )}
+        </View>
+      )}
     </View>
   );
 };
 
-export default Rating
+export default Rating;

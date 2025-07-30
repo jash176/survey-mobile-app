@@ -44,10 +44,10 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
-    
+
     try {
       const { user, error } = await signIn(email, password);
-      
+
       if (error) {
         Alert.alert('Login Failed', error.message || 'An error occurred during login');
         setLoading(false);
@@ -55,7 +55,7 @@ export default function LoginScreen() {
       }
 
       if (user) {
-        router.replace("/dashboard");
+        router.replace("/surveys");
       }
     } catch (error) {
       Alert.alert('Login Failed', 'An unexpected error occurred');
@@ -106,7 +106,7 @@ export default function LoginScreen() {
         <View className="items-center">
           <Text className="text-textSecondary text-base">
             Don't have an account?{' '}
-            <Text 
+            <Text
               className="text-primary font-semibold"
               onPress={handleRegister}
             >

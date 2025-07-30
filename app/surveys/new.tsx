@@ -4,6 +4,7 @@ import Question from '@/components/survey/Question'
 import Rating from '@/components/survey/Rating'
 import SurveyTypeCard from '@/components/SurveyTypeCard'
 import { SURVEY_TEMPLATES } from '@/constants/surveyTypes'
+import { router } from 'expo-router'
 import React from 'react'
 import { FlatList, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -73,7 +74,7 @@ const NewSurvey = () => {
                   title={item.title}
                   subtitle={item.description}
                   borderColor={item.color}
-                  onPress={() => { }}
+                  onPress={() => router.replace("/surveys/1")}
                   surveyType={renderSurveyComponent(item.pages[0])}
                 />
               )
