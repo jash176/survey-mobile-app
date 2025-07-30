@@ -275,6 +275,9 @@ const Survey = () => {
           label="Link Button Text"
           value={linkText}
           placeholder="Link Text"
+          onChangeText={(value) =>
+            handleFieldChange("link_text", value, item.id)
+          }
         />
         <Input
           label="Link Redirect Url"
