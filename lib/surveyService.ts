@@ -8,6 +8,7 @@ export interface SurveyPage {
   type: 'text' | 'link' | 'rating' | 'mcq';
   placeholder?: string;
   redirect_url?: string;
+  link_text?: string;
   rating_type?: 'number' | 'emoji' | 'nps';
   rating_scale?: number;
   options?: string[]; // This will be used for UI but not stored in survey_pages
@@ -21,7 +22,7 @@ export interface SurveyOption {
 }
 
 export interface ISurvey {
-  id?: string;
+  id: string;
   title: string;
   description: string;
   user_id?: string;
@@ -63,6 +64,7 @@ export class SurveyService {
               type: page.type,
               placeholder: page.placeholder || null,
               redirect_url: page.redirect_url || null,
+              link_text: page.link_text || null,
               rating_type: page.rating_type || null,
               rating_scale: page.rating_scale || null,
               allow_multiple: page.allow_multiple || false,
@@ -214,7 +216,44 @@ export class SurveyService {
    */
   static async updateSurvey(surveyId: string, survey: Partial<ISurvey>): Promise<{ survey: ISurvey | null; error: any }> {
     try {
-      const { data, error } = await supabase
+      // First, delete all existing pages and options for this survey
+      const { data: existingPages, error: pagesFetchError } = await supabase
+        .from('survey_pages')
+        .select('id')
+        .eq('survey_id', surveyId);
+
+      if (pagesFetchError) {
+        console.error('Error fetching existing pages for update:', pagesFetchError);
+        return { survey: null, error: pagesFetchError };
+      }
+
+      // Delete existing options for all pages
+      if (existingPages && existingPages.length > 0) {
+        const pageIds = existingPages.map(page => page.id);
+        const { error: optionsError } = await supabase
+          .from('survey_options')
+          .delete()
+          .in('page_id', pageIds);
+
+        if (optionsError) {
+          console.error('Error deleting existing options:', optionsError);
+          return { survey: null, error: optionsError };
+        }
+      }
+
+      // Delete existing pages
+      const { error: pagesDeleteError } = await supabase
+        .from('survey_pages')
+        .delete()
+        .eq('survey_id', surveyId);
+
+      if (pagesDeleteError) {
+        console.error('Error deleting existing pages:', pagesDeleteError);
+        return { survey: null, error: pagesDeleteError };
+      }
+
+      // Update the survey basic info
+      const { data: surveyData, error: surveyError } = await supabase
         .from('surveys')
         .update({
           title: survey.title,
@@ -224,12 +263,58 @@ export class SurveyService {
         .select()
         .single();
 
-      if (error) {
-        console.error('Error updating survey:', error);
-        return { survey: null, error };
+      if (surveyError) {
+        console.error('Error updating survey:', surveyError);
+        return { survey: null, error: surveyError };
       }
 
-      return { survey: data, error: null };
+      // If there are pages, create them
+      if (survey.pages && survey.pages.length > 0) {
+        for (const page of survey.pages) {
+          // Create the survey page
+          const { data: pageData, error: pageError } = await supabase
+            .from('survey_pages')
+            .insert({
+              survey_id: surveyId,
+              title: page.title,
+              description: page.description,
+              type: page.type,
+              placeholder: page.placeholder || null,
+              redirect_url: page.redirect_url || null,
+              link_text: page.link_text || null,
+              rating_type: page.rating_type || null,
+              rating_scale: page.rating_scale || null,
+              allow_multiple: page.allow_multiple || false,
+            })
+            .select()
+            .single();
+
+          if (pageError) {
+            console.error('Error creating survey page:', pageError);
+            return { survey: null, error: pageError };
+          }
+
+          // If this is a multi-choice question and has options, create them
+          if (page.type === 'mcq' && page.options && page.options.length > 0) {
+            const optionsToInsert = page.options.map(optionText => ({
+              page_id: pageData.id,
+              option_text: optionText,
+            }));
+
+            const { error: optionsError } = await supabase
+              .from('survey_options')
+              .insert(optionsToInsert);
+
+            if (optionsError) {
+              console.error('Error creating survey options:', optionsError);
+              return { survey: null, error: optionsError };
+            }
+          }
+        }
+      }
+
+      // Return the updated survey
+      return { survey: surveyData, error: null };
     } catch (error) {
       console.error('Error in updateSurvey:', error);
       return { survey: null, error };

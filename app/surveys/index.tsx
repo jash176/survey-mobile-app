@@ -5,13 +5,21 @@ import { theme } from "@/constants/theme";
 import { useAuth } from "@/lib/authContext";
 import { ISurvey, SurveyService } from "@/lib/surveyService";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { FlatList, ListRenderItem, Text, View } from "react-native";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
+import {
+  FlatList,
+  ListRenderItem,
+  Pressable,
+  RefreshControl,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const SurveysIndex = () => {
   const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
   const [surveys, setSurveys] = useState<Array<ISurvey>>([]);
   const handleNewSurveyPress = () => {
     router.push("/surveys/new");
@@ -19,20 +27,32 @@ const SurveysIndex = () => {
   const fetchSurveys = async () => {
     if (!user) return;
     try {
+      setIsLoading(true);
       const response = await SurveyService.getSurveysByUser(user.id);
       if (response.surveys) {
         setSurveys(response.surveys);
       }
     } catch (error) {
       console.error("Error fetching surveys : ", error);
+    } finally {
+      setIsLoading(false);
     }
   };
-  useEffect(() => {
-    fetchSurveys();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchSurveys();
+    }, [])
+  );
   const renderSurveyItem: ListRenderItem<ISurvey> = ({ item, index }) => {
     return (
-      <View className="p-6">
+      <Pressable
+        onPress={() => {
+          if (item.id) {
+            router.push({ pathname: "/surveys/[id]", params: { id: item.id } });
+          }
+        }}
+        className="p-6"
+      >
         <Text className="text-textPrimary font-bold text-xl">{item.title}</Text>
         <Text
           className="text-textPrimary font-medium text-lg"
@@ -63,7 +83,7 @@ const SurveysIndex = () => {
             title="Not Running"
           />
         </View>
-      </View>
+      </Pressable>
     );
   };
   return (
@@ -77,6 +97,7 @@ const SurveysIndex = () => {
           data={surveys}
           renderItem={renderSurveyItem}
           contentContainerStyle={{ flexGrow: 1 }}
+          keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={() => {
             return (
               <View className="flex-1 justify-center items-center">
@@ -93,6 +114,9 @@ const SurveysIndex = () => {
               </View>
             );
           }}
+          refreshControl={
+            <RefreshControl refreshing={isLoading} onRefresh={fetchSurveys} />
+          }
         />
       </View>
     </SafeAreaView>

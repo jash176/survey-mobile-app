@@ -51,10 +51,7 @@ const Survey = () => {
   useEffect(() => {
     if (params.template) {
       try {
-        console.log("Template params received:", params.template);
         const templateData = JSON.parse(params.template as string);
-        console.log("Parsed template data:", templateData);
-
         const templatePages = templateData.pages.map((page: any) => ({
           type: page.type,
           title: page.title || "",
@@ -86,6 +83,44 @@ const Survey = () => {
       console.log("No template data provided, using default survey");
     }
   }, [params.template]);
+
+  useEffect(() => {
+    const fetchSurvey = async () => {
+      if (params.id) {
+        try {
+          const { survey: fetchedSurvey, error } =
+            await SurveyService.getSurveyById(params.id as string);
+          if (fetchedSurvey) {
+            setSurvey({
+              title: fetchedSurvey.title || "",
+              description: fetchedSurvey.description || "",
+              pages: (fetchedSurvey.pages || []).map((page) => ({
+                type: page.type || "text",
+                title: page.title || "",
+                description: page.description || "",
+                placeholder: page.placeholder || "",
+                rating_type: page.rating_type || "NPS",
+                rating_scale: page.rating_scale || 10,
+                low_label: "Poor",
+                high_label: "Excellent",
+                link_text: page.link_text || "Link Text",
+                link_url: page.redirect_url || "https://example.com",
+                answer: "",
+                options: page.options || ["Option 1"],
+                allow_multiple: page.allow_multiple || false,
+              })),
+            });
+          }
+          if (error) {
+            console.error("Error fetching survey by id:", error);
+          }
+        } catch (err) {
+          console.error("Unexpected error fetching survey by id:", err);
+        }
+      }
+    };
+    fetchSurvey();
+  }, [params.id]);
   const SURVEY_TYPES = [
     {
       type: "text",
@@ -153,6 +188,7 @@ const Survey = () => {
           type: page.type as "text" | "link" | "rating" | "mcq",
           placeholder: page.placeholder || undefined,
           redirect_url: page.link_url || undefined,
+          link_text: page.link_text || undefined,
           rating_type:
             (page.rating_type as "number" | "emoji" | "nps") || undefined,
           rating_scale: page.rating_scale || undefined,
@@ -161,10 +197,19 @@ const Survey = () => {
         })),
       };
 
-      const { survey: savedSurvey, error } = await SurveyService.createSurvey(
-        surveyData,
-        user.id
-      );
+      let result;
+      if (params.id) {
+        // Update existing survey
+        result = await SurveyService.updateSurvey(
+          params.id as string,
+          surveyData
+        );
+      } else {
+        // Create new survey
+        result = await SurveyService.createSurvey(surveyData, user.id);
+      }
+
+      const { survey: savedSurvey, error } = result;
 
       if (error) {
         Alert.alert("Error", `Failed to save survey: ${error.message}`);
