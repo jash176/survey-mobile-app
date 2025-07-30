@@ -224,7 +224,6 @@ const Survey = () => {
       }
 
       Alert.alert("Success", "Survey saved successfully!");
-      console.log("Saved survey:", savedSurvey);
     } catch (error) {
       console.error("Error saving survey:", error);
       Alert.alert(
