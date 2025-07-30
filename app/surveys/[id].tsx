@@ -319,7 +319,7 @@ const Survey = () => {
       </>
     );
   };
-  const renderSurveyCard = () => {
+  const renderSurveyPreview = () => {
     const item = survey.pages[0];
     const title = item.title;
     const description = item.description;
@@ -498,7 +498,7 @@ const Survey = () => {
           </View>
           <View className="px-4 py-7">
             <View className="p-6 shadow border border-borderPrimary rounded-lg bg-[#1d212d]">
-              {renderSurveyCard()}
+              {renderSurveyPreview()}
             </View>
           </View>
         </ScrollView>
