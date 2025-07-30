@@ -20,7 +20,7 @@ export const SURVEY_TEMPLATES = [
     pages: [
       {
         type: 'rating',
-        rating_type: "number",
+        rating_type: "NUMBER",
         title: 'How satisfied are you?',
         description: 'Rate from 1 to 5 stars',
         rating_scale: 5,
@@ -66,7 +66,7 @@ export const SURVEY_TEMPLATES = [
     pages: [
       {
         type: 'rating',
-        rating_type: "emoji",
+        rating_type: "EMOJI",
         title: 'How easy was it to user our product?',
         rating_scale: 5,
       },

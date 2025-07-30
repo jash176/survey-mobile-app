@@ -1,56 +1,60 @@
-import Link from '@/components/survey/Link'
-import MultiChoice from '@/components/survey/MultiChoice'
-import Question from '@/components/survey/Question'
-import Rating from '@/components/survey/Rating'
-import SurveyTypeCard from '@/components/SurveyTypeCard'
-import { SURVEY_TEMPLATES } from '@/constants/surveyTypes'
-import { router } from 'expo-router'
-import React from 'react'
-import { FlatList, Text, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import Link from "@/components/survey/Link";
+import MultiChoice from "@/components/survey/MultiChoice";
+import Question from "@/components/survey/Question";
+import Rating from "@/components/survey/Rating";
+import SurveyTypeCard from "@/components/SurveyTypeCard";
+import { SURVEY_TEMPLATES } from "@/constants/surveyTypes";
+import { router } from "expo-router";
+import React from "react";
+import { FlatList, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const NewSurvey = () => {
   const renderSurveyComponent = (page: any) => {
     switch (page.type) {
-      case 'link':
+      case "link":
         return (
           <Link
-            title={page.title || ''}
-            description={page.description || ''}
+            title={page.title || ""}
+            description={page.description || ""}
             linkText="Visit Link"
-            onLinkPress={() => { }}
+            onLinkPress={() => {}}
           />
         );
 
-      case 'rating':
+      case "rating":
         return (
           <Rating
-            title={page.title || ''}
-            description={page.description || ''}
+            title={page.title || ""}
+            description={page.description || ""}
             lowLabel="Poor"
             highLabel="Excellent"
-            type={page.rating_type === "emoji" ? "EMOJI" : "NUMBERS"}
-            onRatingChange={(rating) => { }}
+            type={page.rating_type}
+            onRatingChange={(rating) => {}}
           />
         );
 
-      case 'text':
+      case "text":
         return (
           <Question
-            title={page.title || ''}
-            description={page.description || ''}
-            placeholder={page.placeholder || ''}
-            onSubmit={(text) => { }}
+            title={page.title || ""}
+            description={page.description || ""}
+            placeholder={page.placeholder || ""}
+            onSubmit={(text) => {}}
           />
         );
 
-      case 'mcq':
+      case "mcq":
         return (
           <MultiChoice
-            title={page.title || ''}
-            description={page.allow_multiple ? 'Select multiple options' : 'Select one option'}
+            title={page.title || ""}
+            description={
+              page.allow_multiple
+                ? "Select multiple options"
+                : "Select one option"
+            }
             options={page.options || []}
-            onSelect={(selectedOptions) => { }}
+            onSelect={(selectedOptions) => {}}
           />
         );
 
@@ -59,12 +63,12 @@ const NewSurvey = () => {
     }
   };
   return (
-    <SafeAreaView className='flex-1 bg-background'>
-      <View className='flex-1 bg-background'>
-        <View className='flex-row items-center justify-between px-4'>
-          <Text className='text-white font-bold text-2xl'>New Survey</Text>
+    <SafeAreaView className="flex-1 bg-background">
+      <View className="flex-1 bg-background">
+        <View className="flex-row items-center justify-between px-4">
+          <Text className="text-white font-bold text-2xl">New Survey</Text>
         </View>
-        <View className='flex-1 justify-center items-center'>
+        <View className="flex-1 justify-center items-center">
           <FlatList
             data={SURVEY_TEMPLATES}
             contentContainerClassName="p-5 gap-5"
@@ -74,16 +78,22 @@ const NewSurvey = () => {
                   title={item.title}
                   subtitle={item.description}
                   borderColor={item.color}
-                  onPress={() => router.replace("/surveys/1")}
+                  onPress={() => {
+                    console.log("Selected template:", item);
+                    router.push({
+                      pathname: "/surveys/[id]",
+                      params: { id: "1", template: JSON.stringify(item) },
+                    });
+                  }}
                   surveyType={renderSurveyComponent(item.pages[0])}
                 />
-              )
+              );
             }}
           />
         </View>
       </View>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default NewSurvey
+export default NewSurvey;

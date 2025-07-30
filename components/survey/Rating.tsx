@@ -15,6 +15,7 @@ interface RatingProps {
   highLabel?: string;
   type: keyof typeof RatingType;
   onRatingChange: (rating: number) => void;
+  ratingScale?: number;
 }
 
 const Rating = ({
@@ -24,6 +25,7 @@ const Rating = ({
   highLabel = "Very likely",
   type = RatingType.NPS,
   onRatingChange,
+  ratingScale,
 }: RatingProps) => {
   const handleRatingSelect = (rating: number) => {
     onRatingChange(rating);
@@ -31,12 +33,12 @@ const Rating = ({
 
   const renderNumRating = (isNps?: boolean) => {
     return (
-      <View className="flex-row justify-between items-center mt-4">
-        {Array.from({ length: isNps ? 11 : 10 }, (_, i) => (
+      <View className="flex-row justify-between items-center mt-4 gap-2">
+        {Array.from({ length: isNps ? 11 : (ratingScale ?? 10) }, (_, i) => (
           <TouchableOpacity
             key={i}
             onPress={() => handleRatingSelect(i)}
-            className={`px-2 h-12 border justify-center items-center border-borderPrimary bg-[#32384d59] rounded-md`}
+            className={`grow h-12 border justify-center items-center border-borderPrimary bg-[#32384d59] rounded-md`}
           >
             <Text className={`text-base font-bold text-white`}>
               {isNps ? i : i + 1}

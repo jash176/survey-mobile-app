@@ -5,13 +5,16 @@ import Rating, { RatingType } from "@/components/survey/Rating";
 import { Button } from "@/components/ui/Button";
 import IconButton from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
-import CustomSlider from "@/components/ui/Slider";
 import { theme } from "@/constants/theme";
+import { useAuth } from "@/lib/authContext";
+import { ISurvey, SurveyService } from "@/lib/surveyService";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import Octicons from "@expo/vector-icons/Octicons";
-import React, { useState } from "react";
-import { SafeAreaView, ScrollView, Text, View } from "react-native";
+import Slider from "@react-native-community/slider";
+import { useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Alert, SafeAreaView, ScrollView, Text, View } from "react-native";
 
 export interface SurveyLocal {
   title: string;
@@ -36,8 +39,13 @@ export interface Page {
 }
 
 const Survey = () => {
+  const { user } = useAuth();
+  const params = useLocalSearchParams();
   const [newOption, setNewOption] = useState("");
-  const [survey, setSurvey] = useState<SurveyLocal>({
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Default survey state
+  const defaultSurvey = {
     title: "Open question",
     description: "Gather open-ended thoughts your users have about a topic.",
     pages: [
@@ -56,36 +64,83 @@ const Survey = () => {
         link_url: "https://tempo.new",
         answer: "",
         options: ["Excellent"],
+        allow_multiple: false,
       },
     ],
-  });
+  };
+
+  const [survey, setSurvey] = useState(defaultSurvey);
+
+  // Initialize survey with template data if provided
+  useEffect(() => {
+    if (params.template) {
+      try {
+        console.log("Template params received:", params.template);
+        const templateData = JSON.parse(params.template as string);
+        console.log("Parsed template data:", templateData);
+
+        const templatePages = templateData.pages.map((page: any) => ({
+          type: page.type,
+          title: page.title || "",
+          description: page.description || "",
+          placeholder: page.placeholder || "",
+          rating_type: page.rating_type || "NPS",
+          rating_scale: page.rating_scale || 10,
+          low_label: page.low_label || "Poor",
+          high_label: page.high_label || "Excellent",
+          link_text: page.link_text || "Link Text",
+          link_url: page.redirect_url || "https://example.com",
+          answer: "",
+          options: page.options || ["Option 1"],
+          allow_multiple: page.allow_multiple || false,
+        }));
+
+        const newSurvey = {
+          title: templateData.title || "New Survey",
+          description: templateData.description || "Survey description",
+          pages: templatePages,
+        };
+
+        console.log("Setting survey with template data:", newSurvey);
+        setSurvey(newSurvey);
+      } catch (error) {
+        console.error("Error parsing template data:", error);
+      }
+    } else {
+      console.log("No template data provided, using default survey");
+    }
+  }, [params.template]);
   const SURVEY_TYPES = [
     {
       type: "text",
       label: "Text",
       icon: (
-        <Feather name="edit" size={16} color={theme.colors.textSecondary} />
+        <Feather name="edit-3" size={16} color={theme.colors.textSecondary} />
       ),
     },
     {
       type: "link",
       label: "Link",
       icon: (
-        <Feather name="edit" size={16} color={theme.colors.textSecondary} />
+        <Feather
+          name="external-link"
+          size={16}
+          color={theme.colors.textSecondary}
+        />
       ),
     },
     {
       type: "rating",
       label: "Rating",
       icon: (
-        <Feather name="edit" size={16} color={theme.colors.textSecondary} />
+        <Feather name="star" size={16} color={theme.colors.textSecondary} />
       ),
     },
     {
       type: "mcq",
       label: "Multi-Choice",
       icon: (
-        <Feather name="edit" size={16} color={theme.colors.textSecondary} />
+        <Feather name="list" size={16} color={theme.colors.textSecondary} />
       ),
     },
   ];
@@ -99,8 +154,87 @@ const Survey = () => {
     }));
   };
 
-  const renderTextContent = (item: Page) => {
-    const text = item.answer;
+  const handleSaveSurvey = async () => {
+    if (!user) {
+      Alert.alert("Error", "You must be logged in to save a survey");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Transform the survey data to match the database schema
+      const surveyData: ISurvey = {
+        title: survey.title,
+        description: survey.description,
+        pages: survey.pages.map((page) => ({
+          title: page.title,
+          description: page.description,
+          type: page.type as "text" | "link" | "rating" | "mcq",
+          placeholder: page.placeholder || undefined,
+          redirect_url: page.link_url || undefined,
+          rating_type:
+            (page.rating_type as "number" | "emoji" | "nps") || undefined,
+          rating_scale: page.rating_scale || undefined,
+          options: page.options || undefined,
+          allow_multiple: page.allow_multiple || false,
+        })),
+      };
+
+      const { survey: savedSurvey, error } = await SurveyService.createSurvey(
+        surveyData,
+        user.id
+      );
+
+      if (error) {
+        Alert.alert("Error", `Failed to save survey: ${error.message}`);
+        return;
+      }
+
+      Alert.alert("Success", "Survey saved successfully!");
+      console.log("Saved survey:", savedSurvey);
+    } catch (error) {
+      console.error("Error saving survey:", error);
+      Alert.alert(
+        "Error",
+        "An unexpected error occurred while saving the survey"
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAddPage = () => {
+    const newPage = {
+      type: "text" as const,
+      title: "New Question",
+      description: "Enter your question description here",
+      placeholder: "",
+      rating_type: "NPS" as const,
+      rating_scale: 10,
+      low_label: "Poor",
+      high_label: "Excellent",
+      link_text: "Link Text",
+      link_url: "https://example.com",
+      answer: "",
+      options: ["Option 1"],
+      allow_multiple: false,
+    };
+
+    setSurvey((prev) => ({
+      ...prev,
+      pages: [...prev.pages, newPage],
+    }));
+  };
+
+  const handleDeletePage = (pageIndex: number) => {
+    setSurvey((prev) => ({
+      ...prev,
+      pages: prev.pages.filter((_, index) => index !== pageIndex),
+    }));
+  };
+
+    const renderTextContent = (item: Page) => {
+        const text = item.answer;
     return (
       <Input
         value={text}
@@ -228,14 +362,15 @@ const Survey = () => {
         {item.rating_type === RatingType.NUMBER && (
           <View>
             <Text className="text-white font-medium mb-2">Scale</Text>
-            <CustomSlider
+            <Slider
+              className="w-full"
               value={scale}
-              onValueChange={(value) =>
-                handleFieldChange("rating_scale", value, item.id)
-              }
-              minimumValue={0}
-              maximumValue={10}
+              onValueChange={(value) => {
+                handleFieldChange("rating_scale", value, index);
+              }}
               step={1}
+              minimumValue={1}
+              maximumValue={10}
               minimumTrackTintColor="#394BE9"
               maximumTrackTintColor="#394BE933"
               thumbTintColor="#857FFF"
@@ -356,6 +491,7 @@ const Survey = () => {
             lowLabel={lowLabel}
             highLabel={highLabel}
             onRatingChange={() => {}}
+            ratingScale={ratingScale}
           />
         );
       case "mcq":
@@ -395,7 +531,11 @@ const Survey = () => {
               }
               title="Not Running"
             />
-            <Button title="Save Survey" />
+            <Button
+              title={isSaving ? "Saving..." : "Save Survey"}
+              onPress={handleSaveSurvey}
+              disabled={isSaving}
+            />
           </View>
         </View>
         <ScrollView>
@@ -436,12 +576,6 @@ const Survey = () => {
                     <Text className="text-textSecondary text-lg font-bold">
                       {title}
                     </Text>
-                    <Feather
-                      className="mx-4"
-                      name="trash-2"
-                      size={20}
-                      color={theme.colors.textSecondary}
-                    />
                   </View>
                   <View className="p-5">
                     <Text className="text-textPrimary text-lg font-bold">
