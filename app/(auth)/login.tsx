@@ -1,19 +1,26 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, SafeAreaView, Text, View } from 'react-native';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
-import { useAuth } from '../../lib/authContext';
+import { router } from "expo-router";
+import React, { useState } from "react";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  Text,
+  View,
+} from "react-native";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { useAuth } from "../../lib/authContext";
 import {
   LoginFormErrors,
   validateEmail,
   validateLoginForm,
-  validatePassword
-} from '../../lib/validation';
+  validatePassword,
+} from "../../lib/validation";
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const { signIn } = useAuth();
@@ -27,14 +34,17 @@ export default function LoginScreen() {
   const handleEmailChange = (text: string) => {
     setEmail(text);
     if (errors.email) {
-      setErrors(prev => ({ ...prev, email: validateEmail(text) }));
+      setErrors((prev) => ({ ...prev, email: validateEmail(text) }));
     }
   };
 
   const handlePasswordChange = (text: string) => {
     setPassword(text);
     if (errors.password) {
-      setErrors(prev => ({ ...prev, password: validatePassword(text, true) }));
+      setErrors((prev) => ({
+        ...prev,
+        password: validatePassword(text, true),
+      }));
     }
   };
 
@@ -49,23 +59,26 @@ export default function LoginScreen() {
       const { user, error } = await signIn(email, password);
 
       if (error) {
-        Alert.alert('Login Failed', error.message || 'An error occurred during login');
+        Alert.alert(
+          "Login Failed",
+          error.message || "An error occurred during login"
+        );
         setLoading(false);
         return;
       }
 
       if (user) {
-        router.replace("/surveys");
+        router.replace("/surveys/drawer");
       }
     } catch (error) {
-      Alert.alert('Login Failed', 'An unexpected error occurred');
+      Alert.alert("Login Failed", "An unexpected error occurred");
     } finally {
       setLoading(false);
     }
   };
 
   const handleRegister = () => {
-    router.push('/(auth)/register');
+    router.push("/(auth)/register");
   };
 
   return (
@@ -77,35 +90,40 @@ export default function LoginScreen() {
           </Text>
         </View>
 
-        <Input
-          placeholder="Email"
-          value={email}
-          onChangeText={handleEmailChange}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-          error={errors.email}
-        />
+        <KeyboardAvoidingView
+          className="gap-4"
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <Input
+            placeholder="Email"
+            value={email}
+            onChangeText={handleEmailChange}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            error={errors.email}
+          />
 
-        <Input
-          placeholder="Password"
-          value={password}
-          onChangeText={handlePasswordChange}
-          secureTextEntry
-          autoComplete="password"
-          error={errors.password}
-        />
+          <Input
+            placeholder="Password"
+            value={password}
+            onChangeText={handlePasswordChange}
+            secureTextEntry
+            autoComplete="password"
+            error={errors.password}
+          />
 
-        <Button
-          title="Login"
-          onPress={handleLogin}
-          loading={loading}
-          style={{ marginBottom: 24 }}
-        />
+          <Button
+            title="Login"
+            onPress={handleLogin}
+            loading={loading}
+            style={{ marginBottom: 24 }}
+          />
+        </KeyboardAvoidingView>
 
         <View className="items-center">
           <Text className="text-textSecondary text-base">
-            Don't have an account?{' '}
+            Don't have an account?{" "}
             <Text
               className="text-primary font-semibold"
               onPress={handleRegister}
@@ -117,4 +135,4 @@ export default function LoginScreen() {
       </View>
     </SafeAreaView>
   );
-} 
+}

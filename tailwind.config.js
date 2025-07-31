@@ -11,7 +11,7 @@ module.exports = {
         textPrimary: "#DEE1EA",
         primary: "#4652F2",
         borderPrimary: "#2b304099",
-        card: '#15182399'
+        card: '#151823'
       },
     },
   },

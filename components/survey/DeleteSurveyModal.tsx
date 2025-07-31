@@ -1,7 +1,7 @@
 import Feather from "@expo/vector-icons/Feather";
 import { BlurView } from "expo-blur";
 import React from "react";
-import { Modal, Text, View } from "react-native";
+import { Modal, Platform, Text, View } from "react-native";
 import { Button } from "../ui/Button";
 
 interface DeleteSurveyModalProps {
@@ -19,7 +19,12 @@ const DeleteSurveyModal: React.FC<DeleteSurveyModalProps> = (props) => {
       onRequestClose={onClose}
       transparent
     >
-      <BlurView className="w-full h-full absolute inset-0" intensity={35} />
+      <BlurView
+        className="w-full h-full absolute inset-0"
+        intensity={Platform.OS === "android" ? 30 : 40}
+        experimentalBlurMethod="dimezisBlurView"
+        tint="dark"
+      />
       <View className="flex-1 justify-center items-center p-4">
         <View className="p-5 border rounded-lg border-[#ffffff0d] shadow w-full items-center bg-card">
           <View className="h-14 w-14 rounded-full justify-center items-center bg-[#F43F5E1A]">

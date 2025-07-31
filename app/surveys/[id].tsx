@@ -22,7 +22,9 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, SafeAreaView, ScrollView, Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Survey = () => {
   const { user } = useAuth();
@@ -239,7 +241,7 @@ const Survey = () => {
             />
           </View>
         </View>
-        <ScrollView>
+        <KeyboardAwareScrollView enableOnAndroid>
           <View className="p-6 gap-4 border-b border-borderPrimary">
             <Text className="text-textPrimary text-lg font-bold">
               Internal survey information
@@ -388,7 +390,7 @@ const Survey = () => {
               <CreateSurveyPreview survey={survey.pages[0]} />
             </View>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </View>
       <DeleteSurveyModal
         visible={showDeleteModal}
