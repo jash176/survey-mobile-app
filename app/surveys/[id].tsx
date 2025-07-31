@@ -1,4 +1,5 @@
 import CreateSurveyPreview from "@/components/survey/CreateSurveyPreview";
+import DeleteSurveyModal from "@/components/survey/DeleteSurveyModal";
 import LinkSurveyContent from "@/components/survey/LinkSurveyContent";
 import MultiChoiceSurveyContent from "@/components/survey/MultiChoiceSurveyContent";
 import { RatingType } from "@/components/survey/Rating";
@@ -19,15 +20,18 @@ import {
 } from "@/types/survey.interface";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, SafeAreaView, ScrollView, Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Survey = () => {
   const { user } = useAuth();
   const params = useLocalSearchParams();
   const [newOption, setNewOption] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Default survey state
   const defaultSurvey: SurveyLocal = {
@@ -193,11 +197,24 @@ const Survey = () => {
     }
   };
 
+  const handleDeleteSurvey = async () => {
+    if (params.id) {
+      const { error } = await SurveyService.deleteSurvey(params.id as string);
+      setShowDeleteModal(false);
+      if (!error) {
+        setTimeout(() => {
+          router.back();
+        }, 500);
+      }
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1 bg-background">
         <View className="p-5 flex-row items-center justify-between border-t border-b border-borderPrimary">
           <IconButton
+            onPress={() => setShowDeleteModal(true)}
             icon={
               <AntDesign
                 name="delete"
@@ -224,7 +241,7 @@ const Survey = () => {
             />
           </View>
         </View>
-        <ScrollView>
+        <KeyboardAwareScrollView enableOnAndroid>
           <View className="p-6 gap-4 border-b border-borderPrimary">
             <Text className="text-textPrimary text-lg font-bold">
               Internal survey information
@@ -373,8 +390,13 @@ const Survey = () => {
               <CreateSurveyPreview survey={survey.pages[0]} />
             </View>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </View>
+      <DeleteSurveyModal
+        visible={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onDeletePress={handleDeleteSurvey}
+      />
     </SafeAreaView>
   );
 };
