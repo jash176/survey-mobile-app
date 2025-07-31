@@ -37,8 +37,8 @@ const NewSurvey = () => {
       case "link":
         return (
           <Link
-            title={page.title || ""}
-            description={page.description || ""}
+            title={page.title}
+            description={page.description}
             linkText="Visit Link"
             onLinkPress={() => {}}
           />
@@ -47,8 +47,8 @@ const NewSurvey = () => {
       case "rating":
         return (
           <Rating
-            title={page.title || ""}
-            description={page.description || ""}
+            title={page.title}
+            description={page.description}
             lowLabel="Poor"
             highLabel="Excellent"
             type={page.rating_type}
@@ -59,9 +59,9 @@ const NewSurvey = () => {
       case "text":
         return (
           <Question
-            title={page.title || ""}
-            description={page.description || ""}
-            placeholder={page.placeholder || ""}
+            title={page.title}
+            description={page.description}
+            placeholder={page.placeholder}
             onSubmit={(text) => {}}
           />
         );
@@ -69,7 +69,7 @@ const NewSurvey = () => {
       case "mcq":
         return (
           <MultiChoice
-            title={page.title || ""}
+            title={page.title}
             description={
               page.allow_multiple
                 ? "Select multiple options"
