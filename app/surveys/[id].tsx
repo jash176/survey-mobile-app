@@ -1,3 +1,4 @@
+import DeleteSurveyModal from "@/components/survey/DeleteSurveyModal";
 import Link from "@/components/survey/Link";
 import MultiChoice from "@/components/survey/MultiChoice";
 import Question from "@/components/survey/Question";
@@ -16,7 +17,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import Feather from "@expo/vector-icons/Feather";
 import Octicons from "@expo/vector-icons/Octicons";
 import Slider from "@react-native-community/slider";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, SafeAreaView, ScrollView, Text, View } from "react-native";
 
@@ -36,6 +37,7 @@ const Survey = () => {
   const params = useLocalSearchParams();
   const [newOption, setNewOption] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Default survey state
   const defaultSurvey: SurveyLocal = {
@@ -128,6 +130,7 @@ const Survey = () => {
     };
     fetchSurvey();
   }, [params.id]);
+
   const SURVEY_TYPES = [
     {
       type: "text",
@@ -235,11 +238,16 @@ const Survey = () => {
     }
   };
 
-  const handleDeletePage = (pageIndex: number) => {
-    setSurvey((prev) => ({
-      ...prev,
-      pages: prev.pages.filter((_, index) => index !== pageIndex),
-    }));
+  const handleDeleteSurvey = async () => {
+    if (params.id) {
+      const { error } = await SurveyService.deleteSurvey(params.id as string);
+      setShowDeleteModal(false);
+      if (!error) {
+        setTimeout(() => {
+          router.back();
+        }, 500);
+      }
+    }
   };
 
   const renderTextContent = (item: PageLocal) => {
@@ -531,6 +539,7 @@ const Survey = () => {
       <View className="flex-1 bg-background">
         <View className="p-5 flex-row items-center justify-between border-t border-b border-borderPrimary">
           <IconButton
+            onPress={() => setShowDeleteModal(true)}
             icon={
               <AntDesign
                 name="delete"
@@ -656,6 +665,11 @@ const Survey = () => {
           </View>
         </ScrollView>
       </View>
+      <DeleteSurveyModal
+        visible={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onDeletePress={handleDeleteSurvey}
+      />
     </SafeAreaView>
   );
 };
