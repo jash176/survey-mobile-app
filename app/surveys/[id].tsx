@@ -90,7 +90,7 @@ const Survey = () => {
     } else {
       console.log("No template data provided, using default survey");
     }
-  }, [params.template]);
+  }, [params]);
 
   useEffect(() => {
     const fetchSurvey = async () => {
