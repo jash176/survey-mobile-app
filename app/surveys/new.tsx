@@ -4,7 +4,7 @@ import Question from "@/components/survey/Question";
 import Rating from "@/components/survey/Rating";
 import SurveyTypeCard from "@/components/SurveyTypeCard";
 import TopProgressLoader from "@/components/ui/TopProgressLoader";
-import { SURVEY_TEMPLATES } from "@/constants/surveyTypes";
+import { SURVEY_TEMPLATES } from "@/constants/surveyData";
 import { useAuth } from "@/lib/authContext";
 import { SurveyService } from "@/lib/surveyService";
 import { router } from "expo-router";
