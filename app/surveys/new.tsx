@@ -1,10 +1,7 @@
-import Link from "@/components/survey/Link";
-import MultiChoice from "@/components/survey/MultiChoice";
-import Question from "@/components/survey/Question";
-import Rating from "@/components/survey/Rating";
+import CreateSurveyPreview from "@/components/survey/CreateSurveyPreview";
 import SurveyTypeCard from "@/components/SurveyTypeCard";
 import TopProgressLoader from "@/components/ui/TopProgressLoader";
-import { SURVEY_TEMPLATES } from "@/constants/surveyTypes";
+import { SURVEY_TEMPLATES } from "@/constants/surveyData";
 import { useAuth } from "@/lib/authContext";
 import { SurveyService } from "@/lib/surveyService";
 import { router } from "expo-router";
@@ -32,58 +29,6 @@ const NewSurvey = () => {
       setIsLoading(false);
     }
   };
-  const renderSurveyComponent = (page: any) => {
-    switch (page.type) {
-      case "link":
-        return (
-          <Link
-            title={page.title || ""}
-            description={page.description || ""}
-            linkText="Visit Link"
-            onLinkPress={() => {}}
-          />
-        );
-
-      case "rating":
-        return (
-          <Rating
-            title={page.title || ""}
-            description={page.description || ""}
-            lowLabel="Poor"
-            highLabel="Excellent"
-            type={page.rating_type}
-            onRatingChange={(rating) => {}}
-          />
-        );
-
-      case "text":
-        return (
-          <Question
-            title={page.title || ""}
-            description={page.description || ""}
-            placeholder={page.placeholder || ""}
-            onSubmit={(text) => {}}
-          />
-        );
-
-      case "mcq":
-        return (
-          <MultiChoice
-            title={page.title || ""}
-            description={
-              page.allow_multiple
-                ? "Select multiple options"
-                : "Select one option"
-            }
-            options={page.options || []}
-            onSelect={(selectedOptions) => {}}
-          />
-        );
-
-      default:
-        return null;
-    }
-  };
   return (
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1 bg-background">
@@ -103,7 +48,7 @@ const NewSurvey = () => {
                   subtitle={item.description}
                   borderColor={item.color}
                   onPress={() => handleSurveyCreation(item)}
-                  surveyType={renderSurveyComponent(item.pages[0])}
+                  surveyType={<CreateSurveyPreview survey={item.pages[0]} />}
                 />
               );
             }}

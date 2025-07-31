@@ -1,20 +1,13 @@
+import { SurveyItem } from "@/components/survey/SurveyItem";
 import { Button } from "@/components/ui/Button";
 import EmptyListComponent from "@/components/ui/EmptyListComponent";
-import IconButton from "@/components/ui/IconButton";
 import { theme } from "@/constants/theme";
 import { useAuth } from "@/lib/authContext";
-import { ISurvey, SurveyService } from "@/lib/surveyService";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import { SurveyService } from "@/lib/surveyService";
+import { ISurvey } from "@/types/survey.interface";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useState } from "react";
-import {
-  FlatList,
-  ListRenderItem,
-  Pressable,
-  RefreshControl,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, RefreshControl, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const SurveysIndex = () => {
@@ -43,49 +36,6 @@ const SurveysIndex = () => {
       fetchSurveys();
     }, [])
   );
-  const renderSurveyItem: ListRenderItem<ISurvey> = ({ item, index }) => {
-    return (
-      <Pressable
-        onPress={() => {
-          if (item.id) {
-            router.push({ pathname: "/surveys/[id]", params: { id: item.id } });
-          }
-        }}
-        className="p-6"
-      >
-        <Text className="text-textPrimary font-bold text-xl">{item.title}</Text>
-        <Text
-          className="text-textPrimary font-medium text-lg"
-          numberOfLines={1}
-        >
-          {item.description}
-        </Text>
-        <View className="pt-4 flex-row items-center justify-between gap-4">
-          {item.pages && item.pages.length > 0 && (
-            <Text className="capitalize text-textPrimary text-lg">
-              {item.pages[0].type}
-            </Text>
-          )}
-          <IconButton
-            className="pointer-events-none grow"
-            icon={<Text className="text-textSecondary font-bold">0</Text>}
-            title="Responses"
-          />
-          <IconButton
-            className="grow"
-            icon={
-              <AntDesign
-                name="pausecircle"
-                size={16}
-                color={theme.colors.textSecondary}
-              />
-            }
-            title="Not Running"
-          />
-        </View>
-      </Pressable>
-    );
-  };
   return (
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1 bg-background px-4">
@@ -95,7 +45,7 @@ const SurveysIndex = () => {
         </View>
         <FlatList
           data={surveys}
-          renderItem={renderSurveyItem}
+          renderItem={({ item, index }) => <SurveyItem item={item} />}
           contentContainerStyle={{ flexGrow: 1 }}
           keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={() => {

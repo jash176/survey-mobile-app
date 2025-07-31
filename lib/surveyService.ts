@@ -1,50 +1,20 @@
-import { RatingType } from '@/components/survey/Rating';
-import { supabase } from './supabase';
-
-export interface SurveyPage {
-  id: string;
-  survey_id?: string;
-  title: string;
-  description: string;
-  type: 'text' | 'link' | 'rating' | 'mcq';
-  placeholder?: string;
-  redirect_url?: string;
-  link_text?: string;
-  low_label?: string;
-  high_label?: string;
-  rating_type?: RatingType;
-  rating_scale?: number;
-  options?: string[];
-  allow_multiple?: boolean;
-}
-
-export interface SurveyOption {
-  id?: string;
-  page_id: string;
-  option_text: string;
-}
-
-export interface ISurvey {
-  id: string;
-  title: string;
-  description: string;
-  user_id?: string;
-  pages: SurveyPage[];
-}
-
-export type SurveyPageInput = Omit<SurveyPage, 'id'>;
-export type SurveyInput = {
-  title: string;
-  description: string;
-  user_id?: string;
-  pages: SurveyPageInput[];
-}
+import {
+  DatabaseSurveyFields,
+  ISurvey,
+  SurveyInput,
+  SurveyPageInput,
+} from "@/types/survey.interface";
+import { supabase } from "./supabase";
 
 // Custom error types for better error handling
 export class SurveyServiceError extends Error {
-  constructor(message: string, public readonly operation: string, public readonly originalError?: any) {
+  constructor(
+    message: string,
+    public readonly operation: string,
+    public readonly originalError?: any
+  ) {
     super(message);
-    this.name = 'SurveyServiceError';
+    this.name = "SurveyServiceError";
   }
 }
 
@@ -60,28 +30,30 @@ export class SurveyService {
   /**
    * Transform raw database data to our survey interface
    */
-  private static transformSurveyData(data: any): ISurvey {
+  private static transformSurveyData(data: DatabaseSurveyFields): ISurvey {
     return {
       id: data.id,
       title: data.title,
       description: data.description,
       user_id: data.user_id,
-      pages: data.survey_pages?.map((page: any) => ({
-        id: page.id,
-        survey_id: page.survey_id,
-        title: page.title,
-        description: page.description,
-        type: page.type,
-        placeholder: page.placeholder,
-        redirect_url: page.redirect_url,
-        link_text: page.link_text,
-        low_label: page.low_label,
-        high_label: page.high_label,
-        rating_type: page.rating_type,
-        rating_scale: page.rating_scale,
-        allow_multiple: page.allow_multiple,
-        options: page.survey_options?.map((option: any) => option.option_text) || [],
-      })) || [],
+      pages:
+        data.survey_pages.map((page) => ({
+          id: page.id,
+          survey_id: page.survey_id,
+          title: page.title,
+          description: page.description,
+          type: page.type,
+          placeholder: page.placeholder,
+          redirect_url: page.redirect_url,
+          link_text: page.link_text,
+          low_label: page.low_label,
+          high_label: page.high_label,
+          rating_type: page.rating_type,
+          rating_scale: page.rating_scale,
+          allow_multiple: page.allow_multiple,
+          options:
+            page.survey_options?.map((option) => option.option_text) || [],
+        })) || [],
     };
   }
 
@@ -108,22 +80,25 @@ export class SurveyService {
   /**
    * Create survey options for a page
    */
-  private static async createSurveyOptions(pageId: string, options: string[]): Promise<void> {
+  private static async createSurveyOptions(
+    pageId: string,
+    options: string[]
+  ): Promise<void> {
     if (!options || options.length === 0) return;
 
-    const optionsToInsert = options.map(optionText => ({
+    const optionsToInsert = options.map((optionText) => ({
       page_id: pageId,
       option_text: optionText,
     }));
 
     const { error } = await supabase
-      .from('survey_options')
+      .from("survey_options")
       .insert(optionsToInsert);
 
     if (error) {
       throw new SurveyServiceError(
-        'Failed to create survey options',
-        'createSurveyOptions',
+        "Failed to create survey options",
+        "createSurveyOptions",
         error
       );
     }
@@ -132,25 +107,28 @@ export class SurveyService {
   /**
    * Create a single survey page with its options
    */
-  private static async createSurveyPage(page: SurveyPageInput, surveyId: string): Promise<void> {
+  private static async createSurveyPage(
+    page: SurveyPageInput,
+    surveyId: string
+  ): Promise<void> {
     const pageData = this.createPageData(page, surveyId);
     const { data: createdPage, error: pageError } = await supabase
-    .from('survey_pages')
-    .insert(pageData)
-    .select()
-    .single();
-    
-    console.log("PageData : ", pageData, pageError)
+      .from("survey_pages")
+      .insert(pageData)
+      .select()
+      .single();
+
+    console.log("PageData : ", pageData, pageError);
     if (pageError) {
       throw new SurveyServiceError(
-        'Failed to create survey page',
-        'createSurveyPage',
+        "Failed to create survey page",
+        "createSurveyPage",
         pageError
       );
     }
 
     // Create options if this is a multiple choice question
-    if (page.type === 'mcq' && page.options) {
+    if (page.type === "mcq" && page.options) {
       await this.createSurveyOptions(createdPage.id, page.options);
     }
   }
@@ -161,30 +139,30 @@ export class SurveyService {
   private static async deleteSurveyPages(surveyId: string): Promise<void> {
     // Get all page IDs for this survey
     const { data: pages, error: pagesFetchError } = await supabase
-      .from('survey_pages')
-      .select('id')
-      .eq('survey_id', surveyId);
+      .from("survey_pages")
+      .select("id")
+      .eq("survey_id", surveyId);
 
     if (pagesFetchError) {
       throw new SurveyServiceError(
-        'Failed to fetch survey pages for deletion',
-        'deleteSurveyPages',
+        "Failed to fetch survey pages for deletion",
+        "deleteSurveyPages",
         pagesFetchError
       );
     }
 
     // Delete survey options for all pages
     if (pages && pages.length > 0) {
-      const pageIds = pages.map(page => page.id);
+      const pageIds = pages.map((page) => page.id);
       const { error: optionsError } = await supabase
-        .from('survey_options')
+        .from("survey_options")
         .delete()
-        .in('page_id', pageIds);
+        .in("page_id", pageIds);
 
       if (optionsError) {
         throw new SurveyServiceError(
-          'Failed to delete survey options',
-          'deleteSurveyPages',
+          "Failed to delete survey options",
+          "deleteSurveyPages",
           optionsError
         );
       }
@@ -192,14 +170,14 @@ export class SurveyService {
 
     // Delete survey pages
     const { error: pagesError } = await supabase
-      .from('survey_pages')
+      .from("survey_pages")
       .delete()
-      .eq('survey_id', surveyId);
+      .eq("survey_id", surveyId);
 
     if (pagesError) {
       throw new SurveyServiceError(
-        'Failed to delete survey pages',
-        'deleteSurveyPages',
+        "Failed to delete survey pages",
+        "deleteSurveyPages",
         pagesError
       );
     }
@@ -208,11 +186,14 @@ export class SurveyService {
   /**
    * Create a new survey with its pages and options
    */
-  static async createSurvey(survey: SurveyInput, userId: string): Promise<{ survey: ISurvey | null; error: any }> {
+  static async createSurvey(
+    survey: SurveyInput,
+    userId: string
+  ): Promise<{ survey: ISurvey | null; error: any }> {
     try {
       // Create the survey
       const { data: surveyData, error: surveyError } = await supabase
-        .from('surveys')
+        .from("surveys")
         .insert({
           title: survey.title,
           description: survey.description,
@@ -223,8 +204,8 @@ export class SurveyService {
 
       if (surveyError) {
         throw new SurveyServiceError(
-          'Failed to create survey',
-          'createSurvey',
+          "Failed to create survey",
+          "createSurvey",
           surveyError
         );
       }
@@ -237,20 +218,20 @@ export class SurveyService {
       }
 
       // Fetch the complete survey with pages and options
-      const { survey: completeSurvey, error: fetchError } = await this.getSurveyById(surveyData.id);
-      
+      const { survey: completeSurvey, error: fetchError } =
+        await this.getSurveyById(surveyData.id);
+
       if (fetchError) {
         throw new SurveyServiceError(
-          'Failed to fetch created survey',
-          'createSurvey',
+          "Failed to fetch created survey",
+          "createSurvey",
           fetchError
         );
       }
 
       return { survey: completeSurvey, error: null };
-
     } catch (error) {
-      console.error('Error in createSurvey:', error);
+      console.error("Error in createSurvey:", error);
       return { survey: null, error };
     }
   }
@@ -258,28 +239,30 @@ export class SurveyService {
   /**
    * Get all surveys for a user with their pages and options
    */
-  static async getSurveysByUser(userId: string): Promise<{ surveys: ISurvey[] | null; error: any }> {
+  static async getSurveysByUser(
+    userId: string
+  ): Promise<{ surveys: ISurvey[] | null; error: any }> {
     try {
       const { data, error } = await supabase
-        .from('surveys')
+        .from("surveys")
         .select(this.SURVEY_SELECT_QUERY)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
 
       if (error) {
         throw new SurveyServiceError(
-          'Failed to fetch surveys',
-          'getSurveysByUser',
+          "Failed to fetch surveys",
+          "getSurveysByUser",
           error
         );
       }
 
-      const transformedSurveys = data?.map(survey => this.transformSurveyData(survey)) || [];
+      const transformedSurveys =
+        data?.map((survey) => this.transformSurveyData(survey)) || [];
 
       return { surveys: transformedSurveys, error: null };
-
     } catch (error) {
-      console.error('Error in getSurveysByUser:', error);
+      console.error("Error in getSurveysByUser:", error);
       return { surveys: null, error };
     }
   }
@@ -287,18 +270,20 @@ export class SurveyService {
   /**
    * Get a single survey by ID with its pages and options
    */
-  static async getSurveyById(surveyId: string): Promise<{ survey: ISurvey | null; error: any }> {
+  static async getSurveyById(
+    surveyId: string
+  ): Promise<{ survey: ISurvey | null; error: any }> {
     try {
       const { data, error } = await supabase
-        .from('surveys')
+        .from("surveys")
         .select(this.SURVEY_SELECT_QUERY)
-        .eq('id', surveyId)
+        .eq("id", surveyId)
         .single();
 
       if (error) {
         throw new SurveyServiceError(
-          'Failed to fetch survey',
-          'getSurveyById',
+          "Failed to fetch survey",
+          "getSurveyById",
           error
         );
       }
@@ -306,9 +291,8 @@ export class SurveyService {
       const transformedSurvey = this.transformSurveyData(data);
 
       return { survey: transformedSurvey, error: null };
-
     } catch (error) {
-      console.error('Error in getSurveyById:', error);
+      console.error("Error in getSurveyById:", error);
       return { survey: null, error };
     }
   }
@@ -316,26 +300,29 @@ export class SurveyService {
   /**
    * Update an existing survey
    */
-  static async updateSurvey(surveyId: string, survey: Partial<SurveyInput>): Promise<{ survey: ISurvey | null; error: any }> {
+  static async updateSurvey(
+    surveyId: string,
+    survey: Partial<SurveyInput>
+  ): Promise<{ survey: ISurvey | null; error: any }> {
     try {
       // Delete existing pages and options
       await this.deleteSurveyPages(surveyId);
 
       // Update the survey basic info
       const { data: surveyData, error: surveyError } = await supabase
-        .from('surveys')
+        .from("surveys")
         .update({
           title: survey.title,
           description: survey.description,
         })
-        .eq('id', surveyId)
+        .eq("id", surveyId)
         .select()
         .single();
 
       if (surveyError) {
         throw new SurveyServiceError(
-          'Failed to update survey',
-          'updateSurvey',
+          "Failed to update survey",
+          "updateSurvey",
           surveyError
         );
       }
@@ -348,20 +335,20 @@ export class SurveyService {
       }
 
       // Fetch the updated survey with all its data
-      const { survey: updatedSurvey, error: fetchError } = await this.getSurveyById(surveyId);
-      
+      const { survey: updatedSurvey, error: fetchError } =
+        await this.getSurveyById(surveyId);
+
       if (fetchError) {
         throw new SurveyServiceError(
-          'Failed to fetch updated survey',
-          'updateSurvey',
+          "Failed to fetch updated survey",
+          "updateSurvey",
           fetchError
         );
       }
 
       return { survey: updatedSurvey, error: null };
-
     } catch (error) {
-      console.error('Error in updateSurvey:', error);
+      console.error("Error in updateSurvey:", error);
       return { survey: null, error };
     }
   }
@@ -376,22 +363,21 @@ export class SurveyService {
 
       // Delete the survey
       const { error: surveyError } = await supabase
-        .from('surveys')
+        .from("surveys")
         .delete()
-        .eq('id', surveyId);
+        .eq("id", surveyId);
 
       if (surveyError) {
         throw new SurveyServiceError(
-          'Failed to delete survey',
-          'deleteSurvey',
+          "Failed to delete survey",
+          "deleteSurvey",
           surveyError
         );
       }
 
       return { error: null };
-
     } catch (error) {
-      console.error('Error in deleteSurvey:', error);
+      console.error("Error in deleteSurvey:", error);
       return { error };
     }
   }
