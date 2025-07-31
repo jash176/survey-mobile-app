@@ -1,12 +1,19 @@
 import { RatingType } from "@/components/survey/Rating";
+import { SurveyLocal } from "@/types/survey.interface";
 
-export const SURVEY_TEMPLATES = [
+type SurveyTemplate = SurveyLocal & {
+  id: string;
+  color: string;
+};
+
+export const SURVEY_TEMPLATES: SurveyTemplate[] = [
   {
     id: "text-feedback",
     title: "Text Feedback",
     description: "Collect open-ended feedback using a text input.",
     pages: [
       {
+        id: "text-template-1",
         type: "text",
         title: "What can we do better?",
         description:
@@ -18,6 +25,7 @@ export const SURVEY_TEMPLATES = [
         redirect_url: "",
         options: [""],
         allow_multiple: false,
+        rating_scale: 10,
       },
     ],
     color: "border-cyan-400",
@@ -28,6 +36,7 @@ export const SURVEY_TEMPLATES = [
     description: "Let users rate your product or service.",
     pages: [
       {
+        id: "text-template-2",
         type: "rating",
         title: "How satisfied are you?",
         description: "Rate from 1 to 5 stars",
@@ -39,6 +48,7 @@ export const SURVEY_TEMPLATES = [
         redirect_url: "",
         options: [""],
         allow_multiple: false,
+        placeholder: "",
       },
     ],
     color: "border-blue-400",
@@ -49,6 +59,7 @@ export const SURVEY_TEMPLATES = [
     description: "Ask a question with several possible answers.",
     pages: [
       {
+        id: "text-template-3",
         type: "mcq",
         title: "What feature do you use the most?",
         allow_multiple: false,
@@ -59,6 +70,8 @@ export const SURVEY_TEMPLATES = [
         high_label: "Excellent",
         link_text: "",
         redirect_url: "",
+        description: "",
+        placeholder: "",
       },
     ],
     color: "border-purple-600",
@@ -69,11 +82,18 @@ export const SURVEY_TEMPLATES = [
     description: "Send users to a URL after answering a question.",
     pages: [
       {
+        id: "text-template-4",
         type: "link",
         title: "Thanks for your interest!",
         redirect_url: "https://tempo.new",
-        link_text: "",
+        link_text: "Link Text",
         options: [""],
+        allow_multiple: false,
+        description: "",
+        placeholder: "",
+        rating_scale: 10,
+        high_label: "",
+        low_label: "",
       },
     ],
     color: "border-orange-500",
@@ -85,6 +105,7 @@ export const SURVEY_TEMPLATES = [
       "Evaluates ease of use. A low score indicates a high level of effort and potential churn.",
     pages: [
       {
+        id: "text-template-5",
         type: "rating",
         title: "How easy was it to user our product?",
         rating_type: RatingType.EMOJI,
@@ -92,6 +113,11 @@ export const SURVEY_TEMPLATES = [
         high_label: "Excellent",
         link_text: "",
         redirect_url: "",
+        allow_multiple: false,
+        description: "",
+        options: [],
+        placeholder: "",
+        rating_scale: 10,
       },
     ],
     color: "border-orange-400",
