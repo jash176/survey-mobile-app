@@ -1,10 +1,17 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { Alert, SafeAreaView, Text, View } from 'react-native';
-import { Button } from '../../components/ui/Button';
-import { HeaderBar } from '../../components/ui/HeaderBar';
-import { Input } from '../../components/ui/Input';
-import { useAuth } from '../../lib/authContext';
+import { router } from "expo-router";
+import React, { useState } from "react";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  Text,
+  View,
+} from "react-native";
+import { Button } from "../../components/ui/Button";
+import { HeaderBar } from "../../components/ui/HeaderBar";
+import { Input } from "../../components/ui/Input";
+import { useAuth } from "../../lib/authContext";
 import {
   RegisterFormErrors,
   validateCompanyName,
@@ -12,17 +19,17 @@ import {
   validatePassword,
   validateRegisterStep1,
   validateRegisterStep2,
-  validateUsername
-} from '../../lib/validation';
+  validateUsername,
+} from "../../lib/validation";
 
 type RegisterStep = 1 | 2;
 
 export default function RegisterScreen() {
   const [currentStep, setCurrentStep] = useState<RegisterStep>(1);
-  const [companyName, setCompanyName] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [companyName, setCompanyName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<RegisterFormErrors>({});
   const { signUp } = useAuth();
@@ -30,28 +37,34 @@ export default function RegisterScreen() {
   const handleCompanyNameChange = (text: string) => {
     setCompanyName(text);
     if (errors.companyName) {
-      setErrors(prev => ({ ...prev, companyName: validateCompanyName(text) }));
+      setErrors((prev) => ({
+        ...prev,
+        companyName: validateCompanyName(text),
+      }));
     }
   };
 
   const handleUsernameChange = (text: string) => {
     setUsername(text);
     if (errors.username) {
-      setErrors(prev => ({ ...prev, username: validateUsername(text) }));
+      setErrors((prev) => ({ ...prev, username: validateUsername(text) }));
     }
   };
 
   const handleEmailChange = (text: string) => {
     setEmail(text);
     if (errors.email) {
-      setErrors(prev => ({ ...prev, email: validateEmail(text) }));
+      setErrors((prev) => ({ ...prev, email: validateEmail(text) }));
     }
   };
 
   const handlePasswordChange = (text: string) => {
     setPassword(text);
     if (errors.password) {
-      setErrors(prev => ({ ...prev, password: validatePassword(text, false) }));
+      setErrors((prev) => ({
+        ...prev,
+        password: validatePassword(text, false),
+      }));
     }
   };
 
@@ -75,20 +88,23 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     const step2Errors = validateRegisterStep2(username, email, password);
     setErrors(step2Errors);
-    
+
     if (!step2Errors.username && !step2Errors.email && !step2Errors.password) {
       setLoading(true);
-      
+
       try {
         const { user, error } = await signUp(
-          email, 
-          password, 
-          username, 
+          email,
+          password,
+          username,
           companyName
         );
-        
+
         if (error) {
-          Alert.alert('Registration Failed', error.message || 'An error occurred during registration');
+          Alert.alert(
+            "Registration Failed",
+            error.message || "An error occurred during registration"
+          );
           setLoading(false);
           return;
         }
@@ -97,7 +113,7 @@ export default function RegisterScreen() {
           router.replace("/(auth)/login");
         }
       } catch (error) {
-        Alert.alert('Registration Failed', 'An unexpected error occurred');
+        Alert.alert("Registration Failed", "An unexpected error occurred");
       } finally {
         setLoading(false);
       }
@@ -112,20 +128,25 @@ export default function RegisterScreen() {
         </Text>
       </View>
 
-      <Input
-        placeholder="Your company name"
-        value={companyName}
-        onChangeText={handleCompanyNameChange}
-        autoCapitalize='none'
-        error={errors.companyName}
-      />
+      <KeyboardAvoidingView
+        className="gap-4"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <Input
+          placeholder="Your company name"
+          value={companyName}
+          onChangeText={handleCompanyNameChange}
+          autoCapitalize="none"
+          error={errors.companyName}
+        />
 
-      <Button
-        title="Go to last step"
-        onPress={handleNext}
-        disabled={!companyName.trim()}
-        style={{ marginBottom: 24 }}
-      />
+        <Button
+          title="Go to last step"
+          onPress={handleNext}
+          disabled={!companyName.trim()}
+          style={{ marginBottom: 24 }}
+        />
+      </KeyboardAvoidingView>
 
       <View className="items-center gap-2">
         <Text className="text-textSecondary text-base">
@@ -143,14 +164,18 @@ export default function RegisterScreen() {
   const renderStep2 = () => (
     <>
       <View className="mb-8">
-          <Text className="text-white text-center text-3xl font-bold mb-2">
-            Sign up to Featurebase
-          </Text>
-          <Text className="text-center text-textSecondary text-base">
-            All done. Now just sign up to get continue.
-          </Text>
-        </View>
+        <Text className="text-white text-center text-3xl font-bold mb-2">
+          Sign up to Featurebase
+        </Text>
+        <Text className="text-center text-textSecondary text-base">
+          All done. Now just sign up to get continue.
+        </Text>
+      </View>
 
+      <KeyboardAvoidingView
+        className="gap-4"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <Input
           placeholder="Username"
           value={username}
@@ -186,15 +211,13 @@ export default function RegisterScreen() {
           disabled={!username.trim() || !email.trim() || password.length < 8}
           style={{ marginBottom: 24 }}
         />
+      </KeyboardAvoidingView>
 
-        <View className="items-center">
-          <Text 
-            className="text-[#b2b8cd99] text-base"
-            onPress={handleBack}
-          >
-            Back
-          </Text>
-        </View>
+      <View className="items-center">
+        <Text className="text-[#b2b8cd99] text-base" onPress={handleBack}>
+          Back
+        </Text>
+      </View>
     </>
   );
 
@@ -206,4 +229,4 @@ export default function RegisterScreen() {
       </View>
     </SafeAreaView>
   );
-} 
+}
